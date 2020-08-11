@@ -1,0 +1,17 @@
+reports:
+  - name: Heading accessibility
+    filename: heading_ordering_report_generator.py
+    class: HeadingOrderingReportGenerator
+    skip: true
+  - name: Non-English docs
+    filename: non_english_docs_report_generator.py
+    class: NonEnglishDocsReportGenerator
+    skip: true
+
+settings:
+  turbo_mode: false
+  html_content_dir_path: /absolute/path/to/html/content/dir
+  preprocessed_content_store_path: /absolute/path/to/preprocessed_content_store.csv.gz
+  total_content_items: 1000
+  content_item_batch_size: 50000
+  csv_writer_buffer_size: 500

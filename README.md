@@ -2,6 +2,115 @@
 
 Project containing numerous report generators to monitor accessibility on GOV.UK.
 
+## What it is and how it works
+
+This project contains a number of report generators, which each create a specific accessibility report; this might be
+finding all pages where the headings of a page don't follow a particular ordering, or all pages that have links with
+the same URLs but different link texts.
+
+Typically, generating these reports require access to two sources of data to generate the reports - the content items
+which represent GOV.UK pages and the HTML of said pages. To get this from GOV.UK itself would require over 500K HTTP
+requests, which would take a long time to compute, would be an unnecessary overhead for the serving applications and is
+prone to numerous errors (timeouts, exceeding rate-limits etc). As the number of accessibility reports we generate
+increases, processing each of them in this way becomes more unsustainable.
+
+The purpose of this project, the raison d'être, is to create an alternative approach to generating these reports.
+The first way it does this is by relying on a copy of the GOV.UK mirror content and preprocessed content store locally,
+thereby eliminating all HTTP requests. Secondly, it runs all of the report generators simultaneously and streams the
+outputs to separate report files on disk as the process is running. It achieves this by using the `multiprocessing`
+package to process each batch of content items, with each batch running over all of the mirror content (made of up
+HTML files) exactly once
+
+### The technical details
+
+The following is a technical breakdown of the report generation process:
+
+- First, the `ReportRunner` takes all of the content items from the preprocessed content store and splits them up into
+batches (controlled by the `content_item_batch_size` setting in `report-config.yaml`).
+- Each batch is then processed in parallel by the `multiprocessing` package, with each of the report generators run
+for a given content item and HTML content of that particular page and the result written to a multiprocessing `Queue`.
+- The `Queue` for each report generator is consumed by a separate process which writes to the output CSV file for
+that report.
+
+Through this structure, we can run multiple report generators in parallel have them write their output to a `Queue`
+continuously, and have the output CSVs written asynchronously. This helps to manage memory consumed on the machine
+as we're always writing to output CSVs (in tandem with the config settings to manage batch and buffer sizes).
+
+## Prerequisites
+
+To use the report runner, you'll need to have a local copy of the preprocessed content store (available from the S3
+`govuk-data-infrastructure-integration` bucket, with prefix
+`knowledge-graph/DATE_OF_YOUR_CHOICE/preprocessed_content_store_DATE_OF_YOUR_CHOICE.csv.gz`). You should download this
+file via the `gds-cli` + AWS CLI to avoid issues when downloading via the console, an example of which might look like:
+
+`gds aws govuk-integration-poweruser aws s3 cp s3://govuk-data-infrastructure-integration/knowledge-graph/2020-08-14/
+preprocessed_content_store_140820.csv.gz /Users/joebloggs/Downloads/preprocessed_content_store_140820.csv.gz`
+
+You'll also need a copy of the mirror content (a collection of HTML files used by the mirrors). You should use the
+`govuk-production-mirror-replica` bucket. This should also be downloaded via the `gds-cli` + AWS CLI (you may wish to
+use the `--assume-role-ttl` flag as the mirror is a large download and can take some time - setting to `180m`
+(180 minutes) should be reasonable). An example command might look like:
+
+`gds aws govuk-production-poweruser --assume-role-ttl 180m aws s3 cp s3://govuk-production-mirror-replica/www.gov.uk
+/User/joebloggs/Downloads/govuk-production-mirror-replica --recursive`
+
+## Getting started
+
+To get started, you should be running Python 3.7. Navigate to the project root (where this README is located) and
+install required packages via `pip install -r requirements.txt`.
+
+Next, you should configure which reports you'd like to generate by going into `report-config.yaml` and setting the
+`skip` property of the reports you require to `false`. No reports are set to run by default, in order to ensure that
+only the reports you require are generated (as generating more reports results in a longer processing time).
+
+Once you've enabled the reports you'd like to generate in the config, run the following to generate the reports:
+
+`python -m src.scripts.run_accessibility_reports`
+
+This may take some time and you'll be informed of progress. Once complete, the reports will be saved in the `data`
+directory.
+
+## Creating a new report
+
+To create a new report, you should first add a report generator into the `report_generators` directory and inherit from
+the `BaseReportGenerator`. You will then have to implement three methods:
+
+- `filename()`: the name of the file that you want the report to be saved out as (must include the `.csv` extension)
+- `headers()`: an array of the names of the headers that your report should contain
+- `preprocess_page(content_item, html)`: the main component of your report generator, which takes a content item from
+the preprocessed content store and the HTML content of that page, runs some computation and returns an array which
+corresponds to the output for that page to be included in the report CSV
+
+Once you have created the report generator, you should add a new entry to the `reports` property in the
+`report-config.yaml` config file representing this report. The entry should contain:
+
+- `name`: the human-friendly name of the report to be used in console output (i.e. `Heading accessibility report`)
+- `filename`: the name of the Python module for your report generator (including the `.py` extension) (i.e
+`heading_ordering_report_generator.py`)
+- `class`: the name of the class for your report generator (i.e. `HeadingOrderingReportGenerator`)
+- `skip`: whether to run or skip this report - ensure this is set to `true` when committed
+
+For testing, you may wish to set the `total_content_items` property in the `report-config.yaml` config file to a low
+number (i.e. `1000`). This limits the report generators run to only be run against the first `total_content_items`
+content items, meaning you'll get output faster.
+
+## Configuration settings
+
+There are a number of configuration settings defined in the `report-config.yaml` file, under the `settings` property
+(the `reports` property is covered in the previous section)
+
+- `turbo_mode`: setting this to `true` increases the number of workers (processes) used when running the report
+generators for a batch of preprocessed content items, to 8x the number of available CPUs on the machine (defaults to
+`false` so that your machine doesn't become unresponsive, which runs at 0.8x the number of available CPUs)
+- `html_content_dir_path`: the absolute path to the directory containing the HTML content from the GOV.UK mirrors
+- `preprocessed_content_store_path`: the absolute path to the preprocessed content store (gzipped) file
+- `total_content_items`: the total number of content items to process. Set to a low number for testing and a high
+number when running the report for real (defaults to `1000`)
+- `content_item_batch_size`: the number of content items that should be contained in a batch, to be parallel-executed
+by the `multiprocessing` package (defaults to `50000`)
+- `csv_writer_buffer_size`: the number of rows to cache in-memory for each report before writing them out to the
+appropriate report CSV (defaults to `500`)
+
 ##  Installing pre-commit hooks
 
 This repo uses the Python package `pre-commit` (https://pre-commit.com) to manage pre-commit hooks. Pre-commit hooks are
