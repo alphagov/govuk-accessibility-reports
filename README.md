@@ -79,7 +79,9 @@ the `BaseReportGenerator`. You will then have to implement three methods:
 - `headers()`: an array of the names of the headers that your report should contain
 - `preprocess_page(content_item, html)`: the main component of your report generator, which takes a content item from
 the preprocessed content store and the HTML content of that page, runs some computation and returns an array which
-corresponds to the output for that page to be included in the report CSV
+corresponds to the output for that page to be included in the report CSV.
+    - You can return an empty array (`[]`) if the page you're processing should not be recorded in the CSV for whatever
+    reason / if you want to skip particular pages etc.
 
 Once you have created the report generator, you should add a new entry to the `reports` property in the
 `report-config.yaml` config file representing this report. The entry should contain:
