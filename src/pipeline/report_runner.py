@@ -158,7 +158,10 @@ class ReportRunner:
                     # This is because a generator might wish to skip certain pages, so we shouldn't mandate an output
                     # for every page, and we don't want to introduce unnecessary logic here to second-guess what the
                     # generator may or may not return
-                    queue.put(report_generator.process_page(content_item, html))
+                    result = report_generator.process_page(content_item, html)
+
+                    if any(result):
+                        queue.put(result)
 
             return
 
