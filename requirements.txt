@@ -9,7 +9,7 @@ python-dotenv>=0.5.1
 
 ## heading_ordering_report_generator
 
-beautifulsoup4==4.7.1
+beautifulsoup4==4.9.1
 html5lib==1.0.1
 lxml==4.3.4
 pandas
