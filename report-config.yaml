@@ -7,6 +7,10 @@ reports:
     filename: non_english_docs_report_generator.py
     class: NonEnglishDocsReportGenerator
     skip: true
+  - name: Tables
+    filename: tables_report_generator.py
+    class: TablesReportGenerator
+    skip: true
   - name: Links that have same text but different URLs
     filename: link_text_report_generator.py
     class: LinkTextReportGenerator
