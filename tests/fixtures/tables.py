@@ -70,6 +70,11 @@ bad_table_missing_row_scope_string = f"""
     </table>
 """
 
+two_tables_string ="""
+    <table><tr><td>1</td></tr></table>
+    <table><tr><td>2</td></tr></table>
+"""
+
 @pytest.fixture
 def good_table():
     return good_table_string
@@ -82,6 +87,10 @@ def bad_table():
 @pytest.fixture
 def bad_table_missing_row_scope():
     return bad_table_missing_row_scope_string
+
+@pytest.fixture
+def two_tables():
+    return two_tables_string
 
 @pytest.fixture
 def html():
