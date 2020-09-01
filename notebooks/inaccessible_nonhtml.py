@@ -85,7 +85,6 @@ df = pd.read_csv(filepath_or_buffer='data/preprocessed_content_store_200820.csv.
 #   - base_path
 #   - pubishing_app (mainstream(?), service-manual-publisher, specialist-publisher, travel-advice-publisher)
 #   - organisations
-#   - attachment title (from details)
 #   - attachment file + extension (from details)
 #   - first_published_at
 #   - public_updated_at
@@ -115,3 +114,5 @@ df_output['attachment_exists'] = df_output['details'].str.contains(file_attachme
 df_output = df_output.query('attachment_exists == True')
 
 # extract attachment
+df_output['hyperlinks'] = df_output['details'].apply(get_links)
+df_output['attachments'] = df_output['hyperlinks'].apply(extract_filename)
