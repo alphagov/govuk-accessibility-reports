@@ -1,7 +1,9 @@
 import pandas as pd
+import numpy as np
 
 import os
 import ast
+import json
 from bs4 import BeautifulSoup
 
 
@@ -41,6 +43,32 @@ def extract_title(text):
     titles = list(map(lambda x: x['title'], text))
 
     return titles
+
+
+# function to extract from list nested in HTML
+def extract_publishing_organisation(content_item, key, index=0):
+    """ Extracts the value of a key within a dictionary masquerading as a string
+
+    :param content_item: A string that's in the format of a dictionary
+    :param key: The name of the key you want to extract the associated value from
+    :param index: The index of specific value if you extracted more than one value from the key
+    :return: the extracted value of the key
+    """
+    try:
+        # convert object to string
+        content_item = json.dumps(content_item)
+        # convert string to object
+        content_item = json.loads(content_item)
+
+        # convert to dictionary
+        organisations = ast.literal_eval(content_item)
+
+        # extract value of key entered from dictionary
+        organisations = list(map(lambda org: org[index], organisations.get(key, {})))
+
+        return organisations
+    except (ValueError, SyntaxError):
+        return [np.NaN]
 
 
 # create dictionaries and headers to specify dtype and date columns
@@ -113,6 +141,25 @@ file_attachment = (".chm|.csv|.diff|.doc|.docx|.dot|.dxf|.eps|"
 df_output['attachment_exists'] = df_output['details'].str.contains(file_attachment, na=False)
 df_output = df_output.query('attachment_exists == True')
 
-# extract attachment
+# extract attachment - fairly slow, consider SoupStrainer and multiprocessing
 df_output['hyperlinks'] = df_output['details'].apply(get_links)
 df_output['attachments'] = df_output['hyperlinks'].apply(extract_filename)
+
+# have non-attachments in output
+# suggests we are not identifying attachments in line with part when we filter
+
+# get primary_publishing_organisation
+df_output['primary_publishing_organisation'] = df_output['organisations'].apply(lambda x: extract_publishing_organisation(content_item=x,
+                                                                                                                          key='primary_publishing_organisation',
+                                                                                                                          index=1))
+
+# export to .csv for Accessibility team
+df_filter = df_output.query('publishing_app == ["service-manual-publisher", "specialist-publisher", "travel-advice-publisher"]')
+df_filter[['base_path',
+           'primary_publishing_organisation',
+           'publishing_app',
+           'document_type',
+           'first_published_at',
+           'public_updated_at',
+           'updated_at',
+           'attachments']].to_csv(path_or_buf='data/inaccessible_nonhtml_report.csv', index=False)
