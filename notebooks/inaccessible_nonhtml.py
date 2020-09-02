@@ -154,7 +154,7 @@ df_output['primary_publishing_organisation'] = df_output['organisations'].apply(
                                                                                                                           index=1))
 
 # export to .csv for Accessibility team
-df_filter = df_output.query('publishing_app == ["service-manual-publisher", "specialist-publisher", "travel-advice-publisher"]')
+df_filter = df_output.query('publishing_app == ["publisher", "service-manual-publisher", "specialist-publisher", "travel-advice-publisher"]')
 df_filter[['base_path',
            'primary_publishing_organisation',
            'publishing_app',
