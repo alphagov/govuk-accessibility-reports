@@ -6,9 +6,9 @@ import numpy as np
 from pandarallel import pandarallel
 import multiprocessing
 
-from notebooks.functions import extract_publishing_organisation
-from notebooks.functions import extract_title
-from notebooks.functions import detect_language
+from notebooks.functions.non_english import extract_publishing_organisation
+from notebooks.functions.non_english import extract_title
+from notebooks.functions.non_english import detect_language
 
 # create dictionaries and headers to specify dtype and date columns
 dict_header = {'base_path': object,
@@ -69,7 +69,7 @@ df['organisation_name'] = df['organisations'].apply(lambda x: extract_publishing
                                                                                               key='primary_publishing_organisation',
                                                                                               index=1))
 # filter for pages with 'attachments'
-df['details_attachment_exists'] = df['details'].str.contains('\'attachments\'\: \[', na = False)
+df['details_attachment_exists'] = df['details'].str.contains('\'attachments\'\: \[', na=False)
 df_attachment = df.query('details_attachment_exists == True').copy()
 
 # extracting title links

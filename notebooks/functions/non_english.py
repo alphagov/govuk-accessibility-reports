@@ -1,6 +1,10 @@
+import numpy as np
+
 import json
 import ast
-import numpy as np
+
+from langdetect import detect_langs
+from langdetect.lang_detect_exception import LangDetectException
 
 
 def extract_publishing_organisation(content_item, key, index=0):
@@ -26,3 +30,32 @@ def extract_publishing_organisation(content_item, key, index=0):
         return organisations
     except (ValueError, SyntaxError):
         return [np.NaN]
+
+
+def extract_title(text):
+    """Extracts all the attachment titles from GOV.UK pages
+
+    :param html: String of the HTML code for the GOV.UK page being passed in
+    :return: list of all the attachment titles that were extracted from GOV.UK page
+
+    """
+    text = ast.literal_eval(text)
+    text = text.get('attachments')
+
+    titles = list(map(lambda x: x['title'], text))
+
+    return titles
+
+
+def detect_language(text):
+    """Detects language of a text, moving onto next text if an error is thrown
+
+    :param text: A string to detect the language of
+    :return: A list returning the language detected and confidence score associated to it
+
+    """
+
+    try:
+        return detect_langs(text)
+    except LangDetectException:
+        return np.NaN
