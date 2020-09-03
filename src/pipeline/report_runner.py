@@ -2,15 +2,19 @@ import csv
 import pandas as pd
 import math
 import multiprocessing
+import os
+import shutil
+import time
+import uuid
 
-from tqdm import tqdm
-
+from definitions import ROOT_DIR
 from multiprocessing import Pool, Manager, Process
+from tqdm import tqdm
 
 
 def write_to_csv(q, csv_file_name, headers, buffer_size=500):
     # Create the output files
-    csv_file = open(f"data/{csv_file_name}", "w")
+    csv_file = open(f"tmp/{csv_file_name}/{uuid.uuid4()}.csv", "w")
     csv_writer = csv.writer(csv_file)
 
     # Write headers
@@ -52,19 +56,20 @@ class ReportRunner:
         print("Finished reading from the preprocessed content store!")
         preprocessed_content_items = next(preprocessed_content_items)
 
-        report_generators_with_queues = self.create_report_queues_by_generator(report_generators)
-        report_writer_processes = self.initialize_report_writers(report_generators_with_queues)
-
         total_content_items = len(preprocessed_content_items)
         print(f"Content item length: {total_content_items}")
+
+        num_work, chunksize = self.get_options_for_multiprocessing(total_content_items)
+
+        report_generators_with_queues = self.create_report_queues_by_generator(report_generators)
+        report_writer_processes = self.initialize_report_writers(report_generators_with_queues, num_work)
 
         required_iterations = self.get_iterations_for_batch_size(total_content_items, self.content_item_batch_size)
         content_items_iterator = preprocessed_content_items.iterrows()
 
-        num_work, chunksize = self.get_options_for_multiprocessing(total_content_items)
-
         for iteration in range(0, required_iterations):
             print(f"Starting batch {iteration + 1}")
+            start_time = time.time()
 
             content_item_tuples = self.create_batched_input_for_multiprocessing(content_items_iterator,
                                                                                 report_generators_with_queues,
@@ -79,8 +84,12 @@ class ReportRunner:
                 pool.close()
                 pool.join()
 
-        self.finalize_queues(report_generators_with_queues.values())
+            elapsed_time_in_seconds = time.time() - start_time
+            print(f"Took {elapsed_time_in_seconds}s to process batch {iteration + 1}")
+
+        self.finalize_queues_for_report_writers(report_generators_with_queues.values(), num_work)
         self.wait_for_report_writers_processes_to_terminate(report_writer_processes)
+        self.create_reports_from_temporary_files(report_generators)
 
     def create_batched_input_for_multiprocessing(self, content_items_iterator, report_generators_with_queues,
                                                  total_content_items):
@@ -109,12 +118,19 @@ class ReportRunner:
 
         return queues_by_generator
 
-    def initialize_report_writers(self, report_queues_by_generator):
+    def initialize_report_writers(self, report_queues_by_generator, number_of_workers_per_report):
         report_writer_processes = []
 
+        # Create temporary dir for partial CSVs
+        os.mkdir(os.path.join(ROOT_DIR, 'tmp'))
+
         for generator, queue in report_queues_by_generator.items():
-            report_writer_processes.append(self.initialize_writer_process(write_to_csv, queue, generator.filename,
-                                                                          generator.headers))
+            os.mkdir(os.path.join(ROOT_DIR, f"tmp/{generator.filename}"))
+
+            # Create a csv writer process for each of the report workers we'll be using for this report
+            for i in range(number_of_workers_per_report):
+                report_writer_processes.append(self.initialize_writer_process(write_to_csv, queue, generator.filename,
+                                                                              generator.headers))
 
         return report_writer_processes
 
@@ -128,10 +144,25 @@ class ReportRunner:
         return num_work, chunksize
 
     @staticmethod
-    def finalize_queues(queues):
+    def create_reports_from_temporary_files(report_generators):
+        for report_generator in report_generators:
+            temporary_dir = os.path.join(ROOT_DIR, f"tmp/{report_generator.filename}")
+            output_path = os.path.join(ROOT_DIR, f"data/{report_generator.filename}")
+
+            csv_dataframes = [pd.read_csv(os.path.join(temporary_dir, temporary_csv))
+                              for temporary_csv in os.listdir(temporary_dir)]
+            pd.concat(csv_dataframes).sort_values(by=['base_path'])\
+                .to_csv(output_path, index=False, columns=report_generator.headers)
+
+        # Delete temporary dir
+        shutil.rmtree(os.path.join(ROOT_DIR, 'tmp'))
+
+    @staticmethod
+    def finalize_queues_for_report_writers(queues, number_of_workers_per_report):
         for queue in queues:
-            queue.put(None)
-            print("Closing pool, pushing None value to queue")
+            [queue.put(None) for _i in range(number_of_workers_per_report)]
+
+            print("Closing pool for all workers, pushing None value to queue")
 
     @staticmethod
     def get_iterations_for_batch_size(total_content_items, batch_size):
