@@ -10,6 +10,10 @@ from notebooks.functions.non_english import extract_publishing_organisation
 from notebooks.functions.non_english import extract_title
 from notebooks.functions.non_english import detect_language
 
+# parallelisation settings
+n_cores = multiprocessing.cpu_count() - 1
+pandarallel.initialize(nb_workers=n_cores, progress_bar=True, use_memory_fs=False)
+
 # create dictionaries and headers to specify dtype and date columns
 dict_header = {'base_path': object,
                'content_id': object,
@@ -64,7 +68,7 @@ df = df[['base_path', 'publishing_app', 'document_type', 'details', 'organisatio
 
 del dict_header, list_header_date, df_lang_detect
 
-# preprocessing
+# extract organisation name
 df['organisation_name'] = df['organisations'].apply(lambda x: extract_publishing_organisation(content_item=x,
                                                                                               key='primary_publishing_organisation',
                                                                                               index=1))
@@ -72,16 +76,11 @@ df['organisation_name'] = df['organisations'].apply(lambda x: extract_publishing
 df['details_attachment_exists'] = df['details'].str.contains('\'attachments\'\: \[', na=False)
 df_attachment = df.query('details_attachment_exists == True').copy()
 
-# extracting title links
+# extract title links
 df_attachment['attachment_title_dict'] = df_attachment['details'].apply(extract_title)
 
 # keep only pages with actual attachments on
 df_attachment = df_attachment[df_attachment['attachment_title_dict'].map(lambda d: len(d) > 0)]
-
-
-# language detection
-n_cores = multiprocessing.cpu_count() - 1
-pandarallel.initialize(nb_workers=n_cores, progress_bar=True, use_memory_fs=False)
 
 df_extract = df_attachment[['base_path',
                             'publishing_app',
@@ -101,11 +100,9 @@ print(time.time() - start)
 df_extract = df_extract.rename(columns={'text_languages': 'text_lang',
                                         'attachment_title_dict': 'attachment_title'})
 
-# save intermediary result so don't have to run func_detectlangs again
+# save intermediary result so don't have to run detect_language again
 df_extract.to_pickle('../data/df_attachment.pkl')
 
-
-# formatting
 
 # extract language, by taking first list item
 # note: `text_lang` is string whereas `attachment_title_lang` is list
@@ -119,7 +116,14 @@ df_extract['check'] = np.where((df_extract['text_lang_main'] == df_extract['atta
 
 # prepare data output to save as .csv
 df_output = df_extract.query('check == False').copy()
-df_output = df_output[['base_path', 'organisation_name', 'publishing_app', 'document_type', 'text', 'text_lang_main', 'attachment_title', 'attachment_title_lang_main']]
+df_output = df_output[['base_path',
+                       'organisation_name',
+                       'publishing_app',
+                       'document_type',
+                       'text',
+                       'text_lang_main',
+                       'attachment_title',
+                       'attachment_title_lang_main']]
 
 # save as separate csvs by organisation
 df_output['organisation_name'] = df_output['organisation_name'].apply(lambda x: ', '.join([str(i) for i in x]))
