@@ -2,9 +2,22 @@ import os
 import ast
 import json
 
+from multiprocessing import Pool
+
 import numpy as np
+import pandas as pd
 
 from bs4 import BeautifulSoup
+
+
+# function to apply parallelised function
+def parallelise_dataframe(df, func, n_cores=1, n_splits=1):
+    df_split = np.array_split(ary=df, indices_or_sections=n_splits)
+    pool = Pool(n_cores)
+    df = pd.concat(pool.map(func, df_split))
+    pool.close()
+    pool.join()
+    return df
 
 
 # function to extract links from HTML
@@ -32,6 +45,22 @@ def extract_filename(list_text):
     """
     file_name = [os.path.split(text)[1] for text in list_text]
     return file_name
+
+
+# function to extract certain element from HTML
+def extract_element(text, element):
+    """Extracts all the attachment titles from GOV.UK pages
+
+    :param text: String of the HTML code for the GOV.UK page being passed in
+    :param element: The element within 'attachments' part of HTML code to extract the contents of e.g. 'title', 'url'
+    :return: list of all the attachment titles that were extracted from GOV.UK page
+    """
+    text = ast.literal_eval(text)
+    text = text.get('attachments')
+
+    titles = list(map(lambda x: x[element], text))
+
+    return titles
 
 
 # function to extract from list nested in HTML
