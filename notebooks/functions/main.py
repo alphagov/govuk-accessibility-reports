@@ -3,6 +3,7 @@ import ast
 import json
 
 from multiprocessing import Pool
+from functools import partial
 
 import numpy as np
 import pandas as pd
@@ -11,10 +12,20 @@ from bs4 import BeautifulSoup
 
 
 # function to apply parallelised function
-def parallelise_dataframe(df, func, n_cores=1, n_splits=1):
+def parallelise_dataframe(df, func, n_cores=1, n_splits=1, **kwargs):
+    """ Apply a function on a dataframe in parallel
+
+    :param df: Dataframe to apply function on
+    :param func: Function to apply to dataframe
+    :param n_cores: Number of cores on machine you want to use to do parallel processing
+    :param n_splits: Number of splits ypu want to make on your dataframe
+    :param kwargs: Keyword arguments for the func function
+    :return: Dataframe after function has been applied to it
+    """
+
     df_split = np.array_split(ary=df, indices_or_sections=n_splits)
     pool = Pool(n_cores)
-    df = pd.concat(pool.map(func, df_split))
+    df = pd.concat(pool.map(partial(func, **kwargs), df_split))
     pool.close()
     pool.join()
     return df
@@ -48,15 +59,15 @@ def extract_filename(list_text):
 
 
 # function to extract certain element from HTML
-def extract_element(text, element):
+def extract_element(text, section, element):
     """Extracts all the attachment titles from GOV.UK pages
 
     :param text: String of the HTML code for the GOV.UK page being passed in
-    :param element: The element within 'attachments' part of HTML code to extract the contents of e.g. 'title', 'url'
+    :param element: The `element` within `section` part of HTML code to extract the contents of e.g. 'title', 'url'
     :return: list of all the attachment titles that were extracted from GOV.UK page
     """
     text = ast.literal_eval(text)
-    text = text.get('attachments')
+    text = text.get(section)
 
     titles = list(map(lambda x: x[element], text))
 
