@@ -4,6 +4,7 @@ import json
 
 from multiprocessing import Pool
 from functools import partial
+from tqdm import tqdm
 
 import numpy as np
 import pandas as pd
@@ -12,7 +13,7 @@ from bs4 import BeautifulSoup
 
 
 # function to apply parallelised function
-def parallelise_dataframe(df, func, n_cores=1, n_splits=1, **kwargs):
+def parallelise_dataframe(series, func, n_cores=1, n_splits=1, **kwargs):
     """ Apply a function on a dataframe in parallel
 
     :param df: Dataframe to apply function on
@@ -23,12 +24,15 @@ def parallelise_dataframe(df, func, n_cores=1, n_splits=1, **kwargs):
     :return: Dataframe after function has been applied to it
     """
 
-    df_split = np.array_split(ary=df, indices_or_sections=n_splits)
-    pool = Pool(n_cores)
-    df = pd.concat(pool.map(partial(func, **kwargs), df_split))
-    pool.close()
+    series_split = np.array_split(ary=series, indices_or_sections=n_splits)
+
+    with Pool(n_cores) as pool:
+        # store each df_split into a list
+        series_list = tqdm(pool.imap(partial(func, **kwargs), series_split))
+        series_list = [series.explode() for series in series_list]
+        series = pd.concat(series_list)
     pool.join()
-    return df
+    return series
 
 
 # function to extract links from HTML
@@ -50,28 +54,50 @@ def get_links(text):
 def extract_filename(list_text):
     """Extracts the last part of a URL path string, including the file name and extension
 
-    :param list: A list of strings to extract last part from, e.g. everything after '/'
+    :param list_text: A list of strings to extract last part from, e.g. everything after '/'
     :return: A list of the same length as list_text, but with the last parts kept e.g. everything after '/'
 
     """
-    file_name = [os.path.split(text)[1] for text in list_text]
-    return file_name
+    try:
+        file_name = [os.path.split(text)[1] for text in list_text]
+        return file_name
+    except (TypeError):
+        # deals with attachment paths that don't end in .pdf, .txt, etc.
+        # e.g. /government/publications/happy-days-farming-company-limited-application-made-to-abstract-water/happy-days-farming-company-limited-application-made-to-abstract-water # noqa
+        return [np.NaN]
+
+
+def extract_fileextension(list_text):
+    """Extracts the extension of a file or webpath
+
+    :param list_text: A list of strings to extract file extension from
+    :return: List of file extensions of the same length as list_text
+    """
+    try:
+        file_extension = [os.path.splitext(text)[1] for text in list_text]
+        return file_extension
+    except (TypeError):
+        return [np.NaN]
 
 
 # function to extract certain element from HTML
 def extract_element(text, section, element):
-    """Extracts all the attachment titles from GOV.UK pages
+    """Extracts all the 'elements' from a specified 'section' from GOV.UK pages
 
     :param text: String of the HTML code for the GOV.UK page being passed in
     :param element: The `element` within `section` part of HTML code to extract the contents of e.g. 'title', 'url'
     :return: list of all the attachment titles that were extracted from GOV.UK page
     """
-    text = ast.literal_eval(text)
-    text = text.get(section)
 
-    titles = list(map(lambda x: x[element], text))
+    try:
+        text = ast.literal_eval(text)
+        text = text.get(section)
 
-    return titles
+        titles = list(map(lambda x: x[element], text))
+        return titles
+
+    except (ValueError):
+        return [np.NaN]
 
 
 # function to extract from list nested in HTML
