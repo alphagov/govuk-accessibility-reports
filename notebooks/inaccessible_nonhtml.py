@@ -85,10 +85,10 @@ df_output['attachment_fileextension'] = df_output['attachment_url'].apply(extrac
 df_output = df_output[df_output['attachment_fileextension'].map(lambda d: len(d) > 0)]
 
 # explode so we have one attachment for each row
-df_output = df_output.explode(column='attachment_filename')
+df_output = df_output.explode(column='attachment_url')
 
 # remove possible empty rows
-df_output = df_output.dropna(subset=['attachment_filename'])
+df_output = df_output.dropna(subset=['attachment_url'])
 
 # get primary_publishing_organisation
 df_output['primary_publishing_organisation'] = df_output['organisations'].apply(lambda x: extract_publishing_organisation(content_item=x,
@@ -104,8 +104,9 @@ df_filter = df_filter[['base_path',
                        'first_published_at',
                        'public_updated_at',
                        'updated_at',
-                       'attachment_filename',
                        'attachment_url']]
+df_filter.sample(n=10000, random_state=42).to_csv(path_or_buf='data/inaccessible_nonhtml_report_sample.csv',
+                                                  index=False)
 df_filter.to_csv(path_or_buf='data/inaccessible_nonhtml_report.csv', index=False)
 
 # save as separate csvs by organisation
