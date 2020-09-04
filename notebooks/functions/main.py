@@ -27,10 +27,8 @@ def parallelise_dataframe(series, func, n_cores=1, n_splits=1, **kwargs):
     series_split = np.array_split(ary=series, indices_or_sections=n_splits)
 
     with Pool(n_cores) as pool:
-        # store each df_split into a list
-        series_list = tqdm(pool.imap(partial(func, **kwargs), series_split))
-        series_list = [series.explode() for series in series_list]
-        series = pd.concat(series_list)
+        # FIXME: doesn't work when have column of lists, since cannot bind these
+        series = pd.concat(tqdm(pool.imap(partial(func, **kwargs), series_split)))
     pool.join()
     return series
 

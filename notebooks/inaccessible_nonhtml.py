@@ -1,7 +1,10 @@
+import time
+
 import pandas as pd
 
-from notebooks.functions.main import get_links
 from notebooks.functions.main import extract_filename
+from notebooks.functions.main import extract_fileextension
+from notebooks.functions.main import extract_element
 from notebooks.functions.main import extract_publishing_organisation
 
 
@@ -54,16 +57,6 @@ df = pd.read_csv(filepath_or_buffer='data/preprocessed_content_store_200820.csv.
 
 del dict_header, list_header_date
 
-# select only relevant columns
-df_output = df[['base_path',
-                'organisations',
-                'publishing_app',
-                'document_type',
-                'first_published_at',
-                'public_updated_at',
-                'updated_at',
-                'details']].copy()
-
 # parameter for all GOV.UK file attachments to identify
 file_attachment = (".chm|.csv|.diff|.doc|.docx|.dot|.dxf|.eps|"
                    + ".gif|.gml|.ics|.jpg|.kml|.odp|.ods|.odt|.pdf|"
@@ -71,16 +64,31 @@ file_attachment = (".chm|.csv|.diff|.doc|.docx|.dot|.dxf|.eps|"
                    + ".vcf|.wsdl|.xls|.xlsm|.xlsx|.xlt|.xml|.xsd|.xslt|"
                    + ".zip")
 
-# filter pages with attachments on them
+# filter pages with non-html attachments on them
+df_output = df.copy()
+df_output['attachment_exists'] = df['details'].str.contains('\'attachments\'\: \[', na=False)
+df_output = df_output.query('attachment_exists == True').copy()
 df_output['attachment_exists'] = df_output['details'].str.contains(file_attachment, na=False)
 df_output = df_output.query('attachment_exists == True')
 
-# extract attachment - fairly slow, consider SoupStrainer and multiprocessing
-df_output['hyperlinks'] = df_output['details'].apply(get_links)
-df_output['attachments'] = df_output['hyperlinks'].apply(extract_filename)
 
-# have non-attachments in output
-# suggests we are not identifying attachments in line with part when we filter
+# extract attachment url
+start = time.time()
+df_output['attachment_url'] = df_output['details'].apply(lambda x: extract_element(text=x,
+                                                                                   section='attachments',
+                                                                                   element='url'))
+print(time.time() - start)
+
+# keep only pages with actual attachments on
+df_output['attachment_filename'] = df_output['attachment_url'].apply(extract_filename)
+df_output['attachment_fileextension'] = df_output['attachment_url'].apply(extract_fileextension)
+df_output = df_output[df_output['attachment_fileextension'].map(lambda d: len(d) > 0)]
+
+# explode so we have one attachment for each row
+df_output = df_output.explode(column='attachment_filename')
+
+# remove possible empty rows
+df_output = df_output.dropna(subset=['attachment_filename'])
 
 # get primary_publishing_organisation
 df_output['primary_publishing_organisation'] = df_output['organisations'].apply(lambda x: extract_publishing_organisation(content_item=x,
@@ -89,11 +97,21 @@ df_output['primary_publishing_organisation'] = df_output['organisations'].apply(
 
 # export to .csv for Accessibility team
 df_filter = df_output.query('publishing_app == ["publisher", "service-manual-publisher", "specialist-publisher", "travel-advice-publisher"]')
-df_filter[['base_path',
-           'primary_publishing_organisation',
-           'publishing_app',
-           'document_type',
-           'first_published_at',
-           'public_updated_at',
-           'updated_at',
-           'attachments']].to_csv(path_or_buf='data/inaccessible_nonhtml_report.csv', index=False)
+df_filter = df_filter[['base_path',
+                       'primary_publishing_organisation',
+                       'publishing_app',
+                       'document_type',
+                       'first_published_at',
+                       'public_updated_at',
+                       'updated_at',
+                       'attachment_filename',
+                       'attachment_url']]
+df_filter.to_csv(path_or_buf='data/inaccessible_nonhtml_report.csv', index=False)
+
+# save as separate csvs by organisation
+df_filter['primary_publishing_organisation'] = df_filter['primary_publishing_organisation'].apply(lambda x: ', '.join([str(i) for i in x]))
+df_filter = df_filter.set_index('primary_publishing_organisation')
+for key in df_filter.index.unique():
+    df_filter.loc[key].to_csv('data/inaccessible_nonhtml_reports/{}.csv'.format(key),
+                              index=False,
+                              header=True)
