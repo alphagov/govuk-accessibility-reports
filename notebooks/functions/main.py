@@ -2,50 +2,7 @@ import os
 import ast
 import json
 
-from multiprocessing import Pool
-from functools import partial
-from tqdm import tqdm
-
 import numpy as np
-import pandas as pd
-
-from bs4 import BeautifulSoup
-
-
-# function to apply parallelised function
-def parallelise_dataframe(series, func, n_cores=1, n_splits=1, **kwargs):
-    """ Apply a function on a dataframe in parallel
-
-    :param df: Dataframe to apply function on
-    :param func: Function to apply to dataframe
-    :param n_cores: Number of cores on machine you want to use to do parallel processing
-    :param n_splits: Number of splits ypu want to make on your dataframe
-    :param kwargs: Keyword arguments for the func function
-    :return: Dataframe after function has been applied to it
-    """
-
-    series_split = np.array_split(ary=series, indices_or_sections=n_splits)
-
-    with Pool(n_cores) as pool:
-        # FIXME: doesn't work when have column of lists, since cannot bind these
-        series = pd.concat(tqdm(pool.imap(partial(func, **kwargs), series_split)))
-    pool.join()
-    return series
-
-
-# function to extract links from HTML
-def get_links(text):
-    """ Extract links found in <a> tags
-
-    :param text: HTML code we want to extract links from
-    :return: list of links extracted from HTML code
-    """
-    list_links = []
-    soup = BeautifulSoup(text, "html.parser")
-    for a in soup.find_all('a', href=True):
-        link = a['href']
-        list_links.append(link)
-    return list_links
 
 
 # function to extract filename from HTML
