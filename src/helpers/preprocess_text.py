@@ -1,4 +1,6 @@
+import os
 import re
+import ast
 
 from bs4 import BeautifulSoup
 from lxml import etree
@@ -110,3 +112,83 @@ def extract_links_from_html(text):
             if (link.startswith('/') or
                 link.startswith(
                     'https://www.gov.uk/')) and "/government/uploads/system/uploads/attachment_data/file/" not in link]
+
+
+def extract_attachment_smart(text):
+    """
+    Extracts all 'attachments' from 'nodes' section of GOV.UK pages.
+    Mainly for pages where we have simple smart answers.
+    e.g. https://www.gov.uk/api/content/student-finance-forms
+
+    :param text: String of the HTML code for GOV.UK page being passed in
+    :return: list of all the attachment links that were extracted from GOV.UK page
+    """
+
+    try:
+        # simple smart answers are nested within the 'nodes' part of HTML code
+        text = ast.literal_eval(text)
+        text = text.get('nodes')
+
+        # extract links
+        list_body = []
+        for txt in text:
+            if txt.get('body'):
+                for _, value in txt.items():
+                    links = str(value)
+                    soup = BeautifulSoup(links, 'html5lib')
+                    links = [link.get('href') for link in soup.findAll('a', href=True)]
+                    list_body.append(links)
+            else:
+                continue
+
+        # remove empty lists
+        list_body = [x for x in list_body if x]
+        # un-nest lists in list
+        list_body = [item for sublist in list_body for item in sublist]
+        # remove duplicate links
+        list_body = list(dict.fromkeys(list_body))
+
+        # extract only attachment links
+        list_attachments = []
+        for link in list_body:
+            if not os.path.splitext(link)[1] == '':
+                list_attachments.append(link)
+
+        return list_attachments
+
+    except (ValueError, TypeError):
+        return []
+
+
+VALID_PART = {'path', 'name', 'ext', 'name and ext'}
+
+
+def extract_from_path(data, part):
+    """
+    Extracts the path, name and/or extension of a file or web path
+    :param data: A list of strings to extract file path, name and/or extension from
+    :param part: The part you want to extract from in data. Must take one of the elements in set, VALID_PART
+    :return: List of file name and/or extensions of the same length as list_text
+    """
+
+    if part not in VALID_PART:
+        raise ValueError('results: part must be one of %r.' % VALID_PART)
+
+    try:
+
+        if isinstance(data, str):
+            data = [data]
+            return extract_from_path(data, part)
+
+        elif isinstance(data, list):
+            if part == 'path':
+                return [os.path.split(text)[0] for text in data]
+            elif part == 'name':
+                return [os.path.splitext(text)[0] for text in data]
+            elif part == 'ext':
+                return [os.path.splitext(text)[1] for text in data]
+            elif part == 'name and ext':
+                return [os.path.split(text)[1] for text in data]
+
+    except TypeError:
+        return []
