@@ -70,7 +70,7 @@ class LinkTextReportGenerator(BaseReportGenerator):
                 if text in excluded_link_texts:
                     continue
 
-                if len(text) > 0:
+                if len(text) > 0 and 'href' in link:
                     href = link['href']
 
                     # There will always be different links to the homepage on every page,
