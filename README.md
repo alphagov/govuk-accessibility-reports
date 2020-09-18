@@ -26,7 +26,7 @@ HTML files) exactly once
 The following is a technical breakdown of the report generation process:
 
 - First, the `ReportRunner` takes all of the content items from the preprocessed content store and splits them up into
-batches (controlled by the `content_item_batch_size` setting in `report-config.yaml`).
+batches (controlled by the `content_item_batch_size` setting in the report config).
 - Each batch is then processed in parallel by the `multiprocessing` package, with each of the report generators run
 for a given content item and HTML content of that particular page and the result written to a multiprocessing `Queue`.
 - The `Queue` for each report generator is consumed by a separate process which writes to the output CSV file for
@@ -59,13 +59,16 @@ use the `--assume-role-ttl` flag as the mirror is a large download and can take 
 To get started, you should be running Python 3.7. Navigate to the project root (where this README is located) and
 install required packages via `pip install -r requirements.txt`.
 
-Next, you should configure which reports you'd like to generate by going into `report-config.yaml` and setting the
-`skip` property of the reports you require to `false`. No reports are set to run by default, in order to ensure that
-only the reports you require are generated (as generating more reports results in a longer processing time).
+Next, you should configure which reports you'd like to generate by going into the appropriate config file inside of the
+ `config` directory and setting the `skip` property of the reports you require to `false`. No reports are set to run
+ by default, in order to ensure that only the reports you require are generated (as generating more reports results
+ in a longer processing time).
 
 Once you've enabled the reports you'd like to generate in the config, run the following to generate the reports:
 
-`python -m src.scripts.run_accessibility_reports`
+`python -m src.scripts.run_accessibility_reports <REPORT CONFIG FILENAME>`
+
+substituting `<REPORT CONFIG FILENAME>` for the report config you wish to use from the `config` directory.
 
 This may take some time and you'll be informed of progress. Once complete, the reports will be saved in the `data`
 directory.
@@ -83,8 +86,9 @@ corresponds to the output for that page to be included in the report CSV.
     - You can return an empty array (`[]`) if the page you're processing should not be recorded in the CSV for whatever
     reason / if you want to skip particular pages etc.
 
-Once you have created the report generator, you should add a new entry to the `reports` property in the
-`report-config.yaml` config file representing this report. The entry should contain:
+Once you have created the report generator, you should add a new entry to the `reports` property to the various
+configs that can be used to run the reports. These can be found in the `config` directory, and each report entry should
+contain:
 
 - `name`: the human-friendly name of the report to be used in console output (i.e. `Heading accessibility report`)
 - `filename`: the name of the Python module for your report generator (including the `.py` extension) (i.e
@@ -92,14 +96,14 @@ Once you have created the report generator, you should add a new entry to the `r
 - `class`: the name of the class for your report generator (i.e. `HeadingOrderingReportGenerator`)
 - `skip`: whether to run or skip this report - ensure this is set to `true` when committed
 
-For testing, you may wish to set the `total_content_items` property in the `report-config.yaml` config file to a low
+For testing, you may wish to set the `total_content_items` property in the config file to a low
 number (i.e. `1000`). This limits the report generators run to only be run against the first `total_content_items`
 content items, meaning you'll get output faster.
 
 ## Configuration settings
 
-There are a number of configuration settings defined in the `report-config.yaml` file, under the `settings` property
-(the `reports` property is covered in the previous section)
+There are a number of configuration settings defined in the configuration files (in the `config` directory), under
+the `settings` property (the `reports` property is covered in the previous section)
 
 - `turbo_mode`: setting this to `true` increases the number of workers (processes) used when running the report
 generators for a batch of preprocessed content items, to 8x the number of available CPUs on the machine (defaults to

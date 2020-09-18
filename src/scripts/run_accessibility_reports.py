@@ -10,10 +10,8 @@ from definitions import ROOT_DIR
 
 def initialise_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument("preprocessed_content_store_path", metavar="preprocess-content-store-path",
-                        help="path to the preprocessed content store file")
-    parser.add_argument("html_content_path", metavar="html-content-path",
-                        help="path to the root directory which contains HTML content for GOV.UK pages")
+    parser.add_argument("report_config_filename", metavar="report-config-filename",
+                        help="filename of the report config to use for generating reports")
 
     return parser
 
@@ -29,7 +27,10 @@ def get_class_instance(module_name, klass):
 
 
 if __name__ == "__main__":
-    path = os.path.join(ROOT_DIR, 'report-config.yaml')
+    parser = initialise_parser()
+    args = parser.parse_args()
+
+    path = os.path.join(ROOT_DIR, f"config/{args.report_config_filename}")
     config = RunnerConfig(path)
 
     reports = []
