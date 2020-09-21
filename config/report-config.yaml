@@ -19,6 +19,10 @@ reports:
     filename: non_html_attachment_report_generator.py
     class: NonHtmlAttachmentReportGenerator
     skip: true
+  - name: Find pages with headers that are being represented as bold text
+    filename: fake_header_report_generator.py
+    class: FakeHeaderReportGenerator
+    skip: true
 
 settings:
   turbo_mode: false
