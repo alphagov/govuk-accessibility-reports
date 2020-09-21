@@ -94,6 +94,28 @@ def extract_text(body):
     return r
 
 
+def extract_subtext(text, key, index=0):
+    """
+    Extracts the value of a key within a dictionary masquerading as a string
+
+    :param text: A string that's in the format of a dictionary
+    :param key: The name of the key you want to extract the associated value from
+    :param index: The index of specific value if you extracted more than one value from the key
+    :return: the extracted value of the key
+    """
+    try:
+
+        # convert to dictionary
+        dictionary = ast.literal_eval(text)
+
+        # extract value of key entered from dictionary
+        list_keys = list(map(lambda x: x[index], dictionary.get(key, {})))
+
+        return list_keys
+    except (ValueError, SyntaxError):
+        return []
+
+
 def extract_links_from_html(text):
     """
     Grab any GOV.UK domain-specific links from page text (looks for a href tags)

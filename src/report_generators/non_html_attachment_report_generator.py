@@ -2,6 +2,7 @@ from src.report_generators.base_report_generator import BaseReportGenerator
 from src.helpers.preprocess_text import extract_links_from_html
 from src.helpers.preprocess_text import extract_attachment_smart
 from src.helpers.preprocess_text import extract_from_path
+from src.helpers.preprocess_text import extract_subtext
 
 import ast
 import re
@@ -21,13 +22,13 @@ class NonHtmlAttachmentReportGenerator(BaseReportGenerator):
 
     @property
     def filename(self):
-        return "test_non_html_page_report.csv"
+        return "non_html_page_report.csv"
 
     def process_page(self, content_item, html):
 
-        content_item['primary_publishing_organisation'] = self.extract_subtext(text=content_item['organisations'],
-                                                                               key='primary_publishing_organisation',
-                                                                               index=1)
+        content_item['primary_publishing_organisation'] = extract_subtext(text=content_item['organisations'],
+                                                                          key='primary_publishing_organisation',
+                                                                          index=1)
 
         # ignore cases we do not want to return
         publishers = ["publisher", "service-manual-publisher", "specialist-publisher", "travel-advice-publisher"]
@@ -74,27 +75,6 @@ class NonHtmlAttachmentReportGenerator(BaseReportGenerator):
                     content_item['document_type'],
                     content_item['first_published_at'],
                     content_item['attachment_path']]
-
-    def extract_subtext(self, text, key, index=0):
-        """
-        Extracts the value of a key within a dictionary masquerading as a string
-
-        :param text: A string that's in the format of a dictionary
-        :param key: The name of the key you want to extract the associated value from
-        :param index: The index of specific value if you extracted more than one value from the key
-        :return: the extracted value of the key
-        """
-        try:
-
-            # convert to dictionary
-            dictionary = ast.literal_eval(text)
-
-            # extract value of key entered from dictionary
-            list_keys = list(map(lambda x: x[index], dictionary.get(key, {})))
-
-            return list_keys
-        except (ValueError, SyntaxError):
-            return []
 
     def extract_attachment(self, text, element):
         """
