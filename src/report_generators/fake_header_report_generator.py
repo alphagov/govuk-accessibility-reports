@@ -24,7 +24,7 @@ class FakeHeaderReportGenerator(BaseReportGenerator):
             return []
 
         # extract text in bold
-        soup = BeautifulSoup(content_item['details'])
+        soup = BeautifulSoup(content_item['details'], 'html5lib')
         content_item['text_in_bold'] = [txt.string for txt in soup.findAll('b')]
 
         # ignore content with no text in bold
