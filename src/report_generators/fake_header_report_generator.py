@@ -23,12 +23,13 @@ class FakeHeaderReportGenerator(BaseReportGenerator):
         if pd.isna(content_item['details']):
             return []
 
-        # extract text in bold
+        # extract text in bold and strong
         soup = BeautifulSoup(content_item['details'], 'html5lib')
         content_item['text_in_bold'] = [txt.string for txt in soup.findAll('b')]
+        content_item['text_in_strong'] = [txt.string for txt in soup.findAll('strong')]
 
-        # ignore content with no text in bold
-        if not content_item['text_in_bold']:
+        # ignore content with no text in bold nor strong
+        if not (content_item['text_in_bold'] or content_item['text_in_strong']):
             return []
 
         # extract primary publishing organisation
