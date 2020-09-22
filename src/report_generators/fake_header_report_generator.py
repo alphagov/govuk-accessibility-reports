@@ -11,8 +11,7 @@ class FakeHeaderReportGenerator(BaseReportGenerator):
         return ['base_path',
                 'primary_publishing_organisation',
                 'publishing_app',
-                'document_type',
-                'text_in_bold']
+                'document_type']
 
     @property
     def filename(self):
@@ -40,5 +39,4 @@ class FakeHeaderReportGenerator(BaseReportGenerator):
         return [content_item['base_path'],
                 content_item['primary_publishing_organisation'],
                 content_item['publishing_app'],
-                content_item['document_type'],
-                content_item['text_in_bold']]
+                content_item['document_type']]
