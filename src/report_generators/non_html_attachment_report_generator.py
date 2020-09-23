@@ -1,11 +1,13 @@
 from src.report_generators.base_report_generator import BaseReportGenerator
 from src.helpers.preprocess_text import extract_links_from_html
-from src.helpers.preprocess_text import extract_attachment_smart
 from src.helpers.preprocess_text import extract_from_path
+from src.helpers.preprocess_text import extract_subtext
 
+import os
 import ast
 import re
 
+from bs4 import BeautifulSoup
 import pandas as pd
 
 
@@ -21,13 +23,13 @@ class NonHtmlAttachmentReportGenerator(BaseReportGenerator):
 
     @property
     def filename(self):
-        return "test_non_html_page_report.csv"
+        return "non_html_page_report.csv"
 
     def process_page(self, content_item, html):
 
-        content_item['primary_publishing_organisation'] = self.extract_subtext(text=content_item['organisations'],
-                                                                               key='primary_publishing_organisation',
-                                                                               index=1)
+        content_item['primary_publishing_organisation'] = extract_subtext(text=content_item['organisations'],
+                                                                          key='primary_publishing_organisation',
+                                                                          index=1)
 
         # ignore cases we do not want to return
         publishers = ["publisher", "service-manual-publisher", "specialist-publisher", "travel-advice-publisher"]
@@ -51,7 +53,7 @@ class NonHtmlAttachmentReportGenerator(BaseReportGenerator):
         content_item['attachment_url_one'] = extract_links_from_html(text=content_item['details'])
         content_item['attachment_url_two'] = self.extract_attachment(text=content_item['details'],
                                                                      element='url')
-        content_item['attachment_url_three'] = extract_attachment_smart(text=content_item['details'])
+        content_item['attachment_url_three'] = self.extract_attachment_smart(text=content_item['details'])
 
         # combine two lists
         content_item['attachment_path'] = content_item['attachment_url_one'] \
@@ -75,27 +77,6 @@ class NonHtmlAttachmentReportGenerator(BaseReportGenerator):
                     content_item['first_published_at'],
                     content_item['attachment_path']]
 
-    def extract_subtext(self, text, key, index=0):
-        """
-        Extracts the value of a key within a dictionary masquerading as a string
-
-        :param text: A string that's in the format of a dictionary
-        :param key: The name of the key you want to extract the associated value from
-        :param index: The index of specific value if you extracted more than one value from the key
-        :return: the extracted value of the key
-        """
-        try:
-
-            # convert to dictionary
-            dictionary = ast.literal_eval(text)
-
-            # extract value of key entered from dictionary
-            list_keys = list(map(lambda x: x[index], dictionary.get(key, {})))
-
-            return list_keys
-        except (ValueError, SyntaxError):
-            return []
-
     def extract_attachment(self, text, element):
         """
         Extracts all the 'attachments' from a specified 'section' from GOV.UK pages
@@ -111,6 +92,51 @@ class NonHtmlAttachmentReportGenerator(BaseReportGenerator):
 
             text = list(map(lambda x: x[element], text))
             return text
+
+        except (ValueError, TypeError):
+            return []
+
+    def extract_attachment_smart(self, text):
+        """
+        Extracts all 'attachments' from 'nodes' section of GOV.UK pages.
+        Mainly for pages where we have simple smart answers.
+        e.g. https://www.gov.uk/api/content/student-finance-forms
+
+        :param text: String of the HTML code for GOV.UK page being passed in
+        :return: list of all the attachment links that were extracted from GOV.UK page
+        """
+
+        try:
+            # simple smart answers are nested within the 'nodes' part of HTML code
+            text = ast.literal_eval(text)
+            text = text.get('nodes')
+
+            # extract links
+            list_body = []
+            for txt in text:
+                if txt.get('body'):
+                    for _, value in txt.items():
+                        links = str(value)
+                        soup = BeautifulSoup(links, 'html5lib')
+                        links = [link.get('href') for link in soup.findAll('a', href=True)]
+                        list_body.append(links)
+                else:
+                    continue
+
+            # remove empty lists
+            list_body = [x for x in list_body if x]
+            # un-nest lists in list
+            list_body = [item for sublist in list_body for item in sublist]
+            # remove duplicate links
+            list_body = list(dict.fromkeys(list_body))
+
+            # extract only attachment links
+            list_attachments = []
+            for link in list_body:
+                if not os.path.splitext(link)[1] == '':
+                    list_attachments.append(link)
+
+            return list_attachments
 
         except (ValueError, TypeError):
             return []

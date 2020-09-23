@@ -94,6 +94,28 @@ def extract_text(body):
     return r
 
 
+def extract_subtext(text, key, index=0):
+    """
+    Extracts the value of a key within a dictionary masquerading as a string
+
+    :param text: A string that's in the format of a dictionary
+    :param key: The name of the key you want to extract the associated value from
+    :param index: The index of specific value if you extracted more than one value from the key
+    :return: the extracted value of the key
+    """
+    try:
+
+        # convert to dictionary
+        dictionary = ast.literal_eval(text)
+
+        # extract value of key entered from dictionary
+        list_keys = list(map(lambda x: x[index], dictionary.get(key, {})))
+
+        return list_keys
+    except (ValueError, SyntaxError):
+        return []
+
+
 def extract_links_from_html(text):
     """
     Grab any GOV.UK domain-specific links from page text (looks for a href tags)
@@ -112,52 +134,6 @@ def extract_links_from_html(text):
             if (link.startswith('/') or
                 link.startswith(
                     'https://www.gov.uk/')) and "/government/uploads/system/uploads/attachment_data/file/" not in link]
-
-
-def extract_attachment_smart(text):
-    """
-    Extracts all 'attachments' from 'nodes' section of GOV.UK pages.
-    Mainly for pages where we have simple smart answers.
-    e.g. https://www.gov.uk/api/content/student-finance-forms
-
-    :param text: String of the HTML code for GOV.UK page being passed in
-    :return: list of all the attachment links that were extracted from GOV.UK page
-    """
-
-    try:
-        # simple smart answers are nested within the 'nodes' part of HTML code
-        text = ast.literal_eval(text)
-        text = text.get('nodes')
-
-        # extract links
-        list_body = []
-        for txt in text:
-            if txt.get('body'):
-                for _, value in txt.items():
-                    links = str(value)
-                    soup = BeautifulSoup(links, 'html5lib')
-                    links = [link.get('href') for link in soup.findAll('a', href=True)]
-                    list_body.append(links)
-            else:
-                continue
-
-        # remove empty lists
-        list_body = [x for x in list_body if x]
-        # un-nest lists in list
-        list_body = [item for sublist in list_body for item in sublist]
-        # remove duplicate links
-        list_body = list(dict.fromkeys(list_body))
-
-        # extract only attachment links
-        list_attachments = []
-        for link in list_body:
-            if not os.path.splitext(link)[1] == '':
-                list_attachments.append(link)
-
-        return list_attachments
-
-    except (ValueError, TypeError):
-        return []
 
 
 VALID_PART = {'path', 'name', 'ext', 'name and ext'}
