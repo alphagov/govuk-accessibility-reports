@@ -213,3 +213,19 @@ direnv: export +DATA_DIR (plus any additional environment variables)
 
 If you don't see this, try running `direnv allow` to enable `direnv` to access the `.envrc` file (you will only need to
 do this once.)
+
+## Exploring the preprocessed_content_store file
+
+The `preprocessed_content_store_*.csv.gz` can be explored using the command-line
+tool [visidata](https://www.visidata.org/).  The following command opens the
+file without decompressing the whole thing.
+
+```sh
+zcat preprocessed_content_store_011020.csv.gz | vd --filetype=csv --csv-delimiter=$'\t' -
+```
+
+You can expand the JSON columns by highlighting the column and typing
+`=eval(nameofcolumn)`, for example, `=eval(details)`, and then typing `(` to
+expand the new column that was created.  Type `)` on an expanded column to
+collapse it.
+
