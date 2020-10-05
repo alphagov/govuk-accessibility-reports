@@ -221,7 +221,7 @@ tool [visidata](https://www.visidata.org/).  The following command opens the
 file without decompressing the whole thing.
 
 ```sh
-zcat preprocessed_content_store_011020.csv.gz | vd --filetype=csv --csv-delimiter=$'\t' -
+zcat < preprocessed_content_store_011020.csv.gz | vd --filetype=csv --csv-delimiter=$'\t' -
 ```
 
 You can expand the JSON columns by highlighting the column and typing
