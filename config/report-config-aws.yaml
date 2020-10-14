@@ -11,6 +11,10 @@ reports:
     filename: link_text_report_generator.py
     class: LinkTextReportGenerator
     skip: false
+  - name: Entities for all content
+    filename: entity_report_generator.py
+    class: EntityReportGenerator
+    skip: false
 
 settings:
   turbo_mode: true
