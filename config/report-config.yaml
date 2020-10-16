@@ -23,6 +23,10 @@ reports:
     filename: fake_header_report_generator.py
     class: FakeHeaderReportGenerator
     skip: true
+  - name: Entities for all content
+    filename: entity_report_generator.py
+    class: EntityReportGenerator
+    skip: false
 
 settings:
   turbo_mode: false

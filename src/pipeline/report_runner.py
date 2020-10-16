@@ -129,8 +129,8 @@ class ReportRunner:
 
             # Create a csv writer process for each of the report workers we'll be using for this report
             for i in range(number_of_workers_per_report):
-                report_writer_processes.append(self.initialize_writer_process(write_to_csv, queue, generator.filename,
-                                                                              generator.headers))
+                report_writer_processes.append(self.initialize_writer_process(write_to_csv, queue, generator.filename(),
+                                                                              generator.headers()))
 
         return report_writer_processes
 

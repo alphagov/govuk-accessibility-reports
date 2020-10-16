@@ -23,7 +23,7 @@ def get_class_instance(module_name, klass):
 
     print(f"Adding report for class {klass}")
 
-    return cls()
+    return cls
 
 
 if __name__ == "__main__":

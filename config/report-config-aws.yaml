@@ -2,14 +2,18 @@ reports:
   - name: Heading accessibility
     filename: heading_ordering_report_generator.py
     class: HeadingOrderingReportGenerator
-    skip: false
+    skip: true
   - name: Non-English docs
     filename: non_english_docs_report_generator.py
     class: NonEnglishDocsReportGenerator
-    skip: false
+    skip: true
   - name: Links that have same text but different URLs
     filename: link_text_report_generator.py
     class: LinkTextReportGenerator
+    skip: true
+  - name: Entities for all content
+    filename: entity_report_generator.py
+    class: EntityReportGenerator
     skip: false
 
 settings:
@@ -17,5 +21,5 @@ settings:
   html_content_dir_path: /var/data/govuk_mirror_html_content
   preprocessed_content_store_path: /var/data/preprocessed_content_store.csv.gz
   total_content_items: 600000
-  content_item_batch_size: 50000
+  content_item_batch_size: 100
   csv_writer_buffer_size: 500
