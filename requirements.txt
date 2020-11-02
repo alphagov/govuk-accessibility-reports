@@ -16,7 +16,7 @@ pandas
 PyYAML==5.2
 regex==2020.1.8
 tqdm==4.36.1
-
+boto3==1.14.33
 
 ## non_english_docs
 
