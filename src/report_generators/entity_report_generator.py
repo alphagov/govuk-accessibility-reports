@@ -47,7 +47,7 @@ class EntityReportGenerator(BaseReportGenerator):
     def get_entities(text):
         sagemaker_client = boto3.session.Session().client('sagemaker-runtime', 'eu-west-1')
         response = sagemaker_client.invoke_endpoint(
-            EndpointName="govner",
+            EndpointName="govner-endpoint",
             ContentType="application/json",
             Accept="application/json",
             Body= json.dumps({"text": text}),
