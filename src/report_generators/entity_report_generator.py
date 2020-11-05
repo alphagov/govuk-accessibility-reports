@@ -5,6 +5,7 @@ import boto3
 import boto3.session
 from datetime import datetime
 import time
+from ast import literal_eval
 
 class EntityReportGenerator(BaseReportGenerator):
 
@@ -22,14 +23,26 @@ class EntityReportGenerator(BaseReportGenerator):
 
     @staticmethod
     def process_page(content_item, html):
+        if EntityReportGenerator.is_mainstream(content_item) == False:
+            return []
         print(f"Get entities {content_item['base_path']}")
         text = EntityReportGenerator.extract_texts(html)
         start_time = time.time()
         entities, govner_version = EntityReportGenerator.get_entities(text)
         print(f"Got entities {content_item['base_path']}, time {time.time() - start_time}")
-        entities = []
-        govner_version = 1
         return [content_item['base_path'], entities, datetime.now(), govner_version]
+
+    @staticmethod
+    def is_mainstream(content_item):
+        # Content that is mainstream; where primary publisher is GDS and pubishing app is 'publisher'
+        if content_item["publishing_app"] != "publisher":
+            return False
+        organisations = literal_eval(content_item['organisations'])
+        for primary_publishing_organisation in organisations["primary_publishing_organisation"]:
+            # "OT1056" is id of GDS
+            if primary_publishing_organisation[2] == "OT1056":
+                return True
+        return False
 
     @staticmethod
     def extract_texts(html):

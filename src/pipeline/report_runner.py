@@ -125,7 +125,7 @@ class ReportRunner:
         os.mkdir(os.path.join(ROOT_DIR, 'tmp'))
 
         for generator, queue in report_queues_by_generator.items():
-            os.mkdir(os.path.join(ROOT_DIR, f"tmp/{generator.filename}"))
+            os.mkdir(os.path.join(ROOT_DIR, f"tmp/{generator.filename()}"))
 
             # Create a csv writer process for each of the report workers we'll be using for this report
             for i in range(number_of_workers_per_report):
@@ -146,13 +146,13 @@ class ReportRunner:
     @staticmethod
     def create_reports_from_temporary_files(report_generators):
         for report_generator in report_generators:
-            temporary_dir = os.path.join(ROOT_DIR, f"tmp/{report_generator.filename}")
-            output_path = os.path.join(ROOT_DIR, f"data/{report_generator.filename}")
+            temporary_dir = os.path.join(ROOT_DIR, f"tmp/{report_generator.filename()}")
+            output_path = os.path.join(ROOT_DIR, f"data/{report_generator.filename()}")
 
             csv_dataframes = [pd.read_csv(os.path.join(temporary_dir, temporary_csv))
                               for temporary_csv in os.listdir(temporary_dir)]
             pd.concat(csv_dataframes).sort_values(by=['base_path'])\
-                .to_csv(output_path, index=False, columns=report_generator.headers)
+                .to_csv(output_path, index=False, columns=report_generator.headers())
 
         # Delete temporary dir
         shutil.rmtree(os.path.join(ROOT_DIR, 'tmp'))
