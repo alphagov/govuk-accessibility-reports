@@ -29,9 +29,9 @@ reports:
     skip: false
 
 settings:
-  turbo_mode: false
-  html_content_dir_path: /absolute/path/to/html/content/dir
-  preprocessed_content_store_path: /absolute/path/to/preprocessed_content_store.csv.gz
-  total_content_items: 10000
-  content_item_batch_size: 50000
-  csv_writer_buffer_size: 500
+  turbo_mode: true
+  html_content_dir_path: /Users/oscarwyatt/govuk/govuk-knowledge-extractor/govuk-production-mirror-replica
+  preprocessed_content_store_path: /Users/oscarwyatt/govuk/govuk-knowledge-graph/data/preprocessed_content_store_070920.csv.gz
+  total_content_items: 1000000
+  content_item_batch_size: 8
+  csv_writer_buffer_size: 32

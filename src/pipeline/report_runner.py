@@ -55,6 +55,7 @@ class ReportRunner:
                                                  )
         print("Finished reading from the preprocessed content store!")
         preprocessed_content_items = next(preprocessed_content_items)
+        preprocessed_content_items = preprocessed_content_items[preprocessed_content_items['publishing_app'] == 'publisher']
 
         total_content_items = len(preprocessed_content_items)
         print(f"Content item length: {total_content_items}")
@@ -171,7 +172,7 @@ class ReportRunner:
     @staticmethod
     def initialize_writer_process(target, queue, filename, headers):
         process = Process(target=target, args=(queue, filename, headers))
-        process.daemon = True
+        process.daemon = False
         process.start()
 
         return process
