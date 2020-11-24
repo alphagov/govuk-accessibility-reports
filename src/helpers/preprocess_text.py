@@ -116,6 +116,23 @@ def extract_subtext(text, key, index=0):
         return []
 
 
+def extract_html_tag(text: str, name: str) -> list:
+    """
+    Extracts text contained within HTML tags.
+
+    :param text: String to extract HTML tags from.
+    :param name: String of the HTML tag to extract from.
+    :return: List of strings contained within HTML tags.
+    """
+    try:
+        soup = BeautifulSoup(text, features='html5lib')
+        soup = soup.body
+        soup = soup.findAll(name)
+        return [str(x) for x in soup]
+    except (ValueError, TypeError, AttributeError):
+        return []
+
+
 def extract_links_from_html(text):
     """
     Grab any GOV.UK domain-specific links from page text (looks for a href tags)

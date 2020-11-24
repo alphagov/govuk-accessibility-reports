@@ -29,7 +29,7 @@ class FakeHeaderReportGenerator(BaseReportGenerator):
                                                                   format='strong')
 
         # ignore content with no text in bold nor strong
-        if not (content_item['text_in_strong']):
+        if not content_item['text_in_strong']:
             return []
 
         # extract primary publishing organisation
