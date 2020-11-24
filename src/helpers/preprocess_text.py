@@ -116,7 +116,7 @@ def extract_subtext(text, key, index=0):
         return []
 
 
-def extract_html_tag(text: str, name: str) -> list:
+def extract_text_from_html(text: str, name: str) -> list:
     """
     Extracts text contained within HTML tags.
 
