@@ -62,8 +62,13 @@ class AttachmentTypeReportGenerator(BaseReportGenerator):
             attachments = extract_from_path(data=links, part='ext')
             # take valid attachments only
             attachments = [x for x in attachments if x in ATTACHMENTS]
+            # take unique html attachments
+            attachments_html = [html for html in links if html.startswith('/')]
+            attachments_html = list(set(attachments_html))
             # count repeated attachment elements in list
             attachment_counts = dict(Counter(attachments))
+            # add html counts
+            attachment_counts.update({'.html': len(attachments_html)})
 
             return attachment_counts
 
