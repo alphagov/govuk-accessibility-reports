@@ -68,7 +68,12 @@ class AttachmentTypeReportGenerator(BaseReportGenerator):
             # count repeated attachment elements in list
             attachment_counts = dict(Counter(attachments))
             # add html counts
-            attachment_counts.update({'.html': len(attachments_html)})
+            html_count = len(attachments_html)
+            # cast 0s to None to be consistent with other attachments
+            if html_count == 0:
+                html_count = None
+
+            attachment_counts.update({'.html': html_count})
 
             return attachment_counts
 
