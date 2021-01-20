@@ -1,10 +1,11 @@
+from src.helpers.postprocess import get_attachment_percents
+
 import pandas as pd
 import swifter  # noqa: F401
 from ast import literal_eval
 
 df = pd.read_csv(filepath_or_buffer='data/attachment_type_report.csv')
 
-n_govuk_pages = df.shape[0]
 id_columns = list(df.columns)
 
 # convert each element to dictionary
@@ -50,46 +51,27 @@ df["primary_publishing_organisation"] = df["primary_publishing_organisation"].st
 # rename column to make it clearer this column is for QA purposes
 df = df.rename(columns={"attachment_and_count": "qa_attachment_count"})
 
-# inc total govuk pages
-df["total_en_labelled_govuk_pages"] = n_govuk_pages
-
-# arrange by base_path
-df = df.sort_values(by=["base_path", "first_published_at", "attachment_type", "attachment_count"])
-
+restrict_dates = ['2019-09-23', '2020-12-07']
 # Report: Organisation ---
-df_org = df.value_counts(subset=["primary_publishing_organisation", "attachment_type"], sort=False)
-df_org = df_org.reset_index()
-df_totals = df.value_counts(subset=["primary_publishing_organisation"], sort=False)
-df_totals = df_totals.reset_index()
-df_org = df_org.merge(right=df_totals,
-                      how='left',
-                      on=["primary_publishing_organisation"],
-                      validate="many_to_one")
-df_org = df_org.rename(columns={"0_x": "counts_attachments",
-                                "0_y": "total_pages"})
-df_org["percentage_attachments"] = df_org["counts_attachments"] / df_org["total_pages"]
-df_org = pd.pivot_table(data=df_org,
-                        index=["primary_publishing_organisation"],
-                        columns="attachment_type",
-                        values="percentage_attachments").reset_index()
-df_org = df_org.sort_values(by="primary_publishing_organisation")
-
+df_org = get_attachment_percents(df=df,
+                                 index="primary_publishing_organisation")
+df_org["date_coverage"] = "all"
+df_org_restrict_dates = get_attachment_percents(df=df,
+                                                index="primary_publishing_organisation",
+                                                date=restrict_dates)
+df_org_restrict_dates["date_coverage"] = ' to '.join(restrict_dates)
 # Report: Document Types ---
-df_doc = df.value_counts(subset=["document_type", "attachment_type"], sort=False).reset_index()
-df_totals = df.value_counts(subset=["document_type"], sort=False).reset_index()
-df_doc = df_doc.merge(right=df_totals,
-                      how='left',
-                      on=["document_type"],
-                      validate="many_to_one")
-df_doc = df_doc.rename(columns={"0_x": "counts_attachments",
-                                "0_y": "total_pages"})
-df_doc["percentage_attachments"] = df_doc["counts_attachments"] / df_doc["total_pages"]
-df_doc = pd.pivot_table(data=df_doc,
-                        index=["document_type"],
-                        columns="attachment_type",
-                        values="percentage_attachments").reset_index()
-df_doc = df_doc.sort_values(by="document_type")
+df_doc = get_attachment_percents(df=df,
+                                 index="document_type")
+df_doc["date_coverage"] = "all"
+df_doc_restrict_dates = get_attachment_percents(df=df,
+                                                index="document_type",
+                                                date=restrict_dates)
+df_doc_restrict_dates["date_coverage"] = ' to '.join(restrict_dates)
 
 # export to csv
-df.to_csv(path_or_buf='data/attachment_type_report_process.csv',
-          index=False)
+files_save = {'attachment_type_org': df_org,
+              'attachment_type_org_restrict_dates': df_org_restrict_dates,
+              'attachment_type_doc': df_doc,
+              'attachment_type_doc_restrict_dates': df_doc_restrict_dates}
+[v.to_csv(path_or_buf='data/' + k + '.csv', index=False) for k, v in files_save.items()]
