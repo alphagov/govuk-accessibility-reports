@@ -1,12 +1,15 @@
-from src.helpers.postprocess import get_attachment_percents
+from src.helpers.postprocess import get_attachment_counts_or_percents
 
 import pandas as pd
 import swifter  # noqa: F401
 from ast import literal_eval
 
-df = pd.read_csv(filepath_or_buffer='data/attachment_type_report.csv')
+df_all = pd.read_csv(filepath_or_buffer='data/attachment_type_report.csv')
 
-id_columns = list(df.columns)
+id_columns = list(df_all.columns)
+
+# filter for whitehall and specialist publisher-only
+df = df_all[df_all["publishing_app"].isin(["whitehall", "specialist"])].copy()
 
 # convert each element to dictionary
 df["attachment_and_count"] = df["attachment_and_count"].swifter.apply(literal_eval)
@@ -26,13 +29,14 @@ for attach in (".pdf", ".html"):
         col_names.append(".pdf")
         col_names.remove(".html")
 
-    # get
+    # get attachment + '_only' entries
     new_col_name = attach + '_only'
     df_attachments[new_col_name] = df_attachments.loc[:, col_names].isnull().all(axis=1) & \
                                    df_attachments.loc[:, attach].notnull()  # noqa: E127
 
 # concat these two dfs together
-df = pd.concat(objs=[df, df_attachments], axis=1)
+df = pd.concat(objs=[df.reset_index(), df_attachments], axis=1)
+df = df.drop(columns="index")
 del df_attachments, col_names
 
 
@@ -46,32 +50,35 @@ df = pd.melt(frame=df,
 df = df.dropna(subset=["attachment_count"])
 
 # remove brackets in primary_publishing_organisation
-df["primary_publishing_organisation"] = df["primary_publishing_organisation"].str.replace(pat=r'[\[\]]',
-                                                                                          repl='')
+df["primary_publishing_organisation"] = df["primary_publishing_organisation"].str.replace(pat=r'[\[\]]', repl='')
 # rename column to make it clearer this column is for QA purposes
 df = df.rename(columns={"attachment_and_count": "qa_attachment_count"})
 
+# Report: Organisation and Document Type
+filters = {"primary_publishing_organisation": ["counts", "percents"],
+           "document_type": ["counts", "percents"]}
 restrict_dates = ['2019-09-23', '2020-12-07']
-# Report: Organisation ---
-df_org = get_attachment_percents(df=df,
-                                 index="primary_publishing_organisation")
-df_org["date_coverage"] = "all"
-df_org_restrict_dates = get_attachment_percents(df=df,
-                                                index="primary_publishing_organisation",
-                                                date=restrict_dates)
-df_org_restrict_dates["date_coverage"] = ' to '.join(restrict_dates)
-# Report: Document Types ---
-df_doc = get_attachment_percents(df=df,
-                                 index="document_type")
-df_doc["date_coverage"] = "all"
-df_doc_restrict_dates = get_attachment_percents(df=df,
-                                                index="document_type",
-                                                date=restrict_dates)
-df_doc_restrict_dates["date_coverage"] = ' to '.join(restrict_dates)
+
+df_list = list()
+df_names_list = ['attachment_type_org_counts',
+                 'attachment_type_org_restrict_dates_counts',
+                 'attachment_type_org_percents',
+                 'attachment_type_org_restrict_dates_percents',
+                 'attachment_type_doc_counts',
+                 'attachment_type_doc_restrict_dates_counts',
+                 'attachment_type_doc_percents',
+                 'attachment_type_doc_restrict_dates_percents']
+for key, value in filters.items():
+    for v in value:
+        df_temp_all = get_attachment_counts_or_percents(df=df, index=key, values=v)
+        df_temp_all["date_coverage"] = "all"
+        df_temp_restrict = get_attachment_counts_or_percents(df=df, index=key, values=v, date=restrict_dates)
+        df_temp_restrict["date_coverage"] = ' to '.join(restrict_dates)
+        df_list.append(df_temp_all)
+        df_list.append(df_temp_restrict)
+
+del df_temp_all, df_temp_restrict, id_columns, key, value, filters, restrict_dates, attach, new_col_name
 
 # export to csv
-files_save = {'attachment_type_org': df_org,
-              'attachment_type_org_restrict_dates': df_org_restrict_dates,
-              'attachment_type_doc': df_doc,
-              'attachment_type_doc_restrict_dates': df_doc_restrict_dates}
+files_save = dict(zip(df_names_list, df_list))
 [v.to_csv(path_or_buf='data/' + k + '.csv', index=False) for k, v in files_save.items()]
