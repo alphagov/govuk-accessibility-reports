@@ -8,6 +8,7 @@ df_all = pd.read_csv(filepath_or_buffer='data/attachment_type_report.csv')
 
 id_columns = list(df_all.columns)
 
+# Reshape ---
 # filter for whitehall and specialist publisher-only
 df = df_all[df_all["publishing_app"].isin(["whitehall", "specialist"])].copy()
 
@@ -34,7 +35,7 @@ for attach in (".pdf", ".html"):
     df_attachments[new_col_name] = df_attachments.loc[:, col_names].isnull().all(axis=1) & \
                                    df_attachments.loc[:, attach].notnull()  # noqa: E127
 
-# concat these two dfs together
+# concat horizontally these two dfs together
 df = pd.concat(objs=[df.reset_index(), df_attachments], axis=1)
 df = df.drop(columns="index")
 del df_attachments, col_names
@@ -54,7 +55,17 @@ df["primary_publishing_organisation"] = df["primary_publishing_organisation"].st
 # rename column to make it clearer this column is for QA purposes
 df = df.rename(columns={"attachment_and_count": "qa_attachment_count"})
 
-# Report: Organisation and Document Type
+
+# Report: Organisation and Document Type ---
+# get reports along the following cuts:
+#   i. Publishing organisation attachments for counts for all time
+#   ii. Publishing organisation attachments for counts for restricted dates
+#   iii. Publishing organisation attachments for percents for all time
+#   iv. Publishing organisation attachments for percents for restricted dates
+#   v. Document type attachments for counts for all time
+#   vi. Document type attachments for counts for restricted dates
+#   vii. Document type attachments for percents for all time
+#   viii. Document type attachments for percents for restricted dates
 filters = {"primary_publishing_organisation": ["counts", "percents"],
            "document_type": ["counts", "percents"]}
 restrict_dates = ['2019-09-23', '2020-12-07']
