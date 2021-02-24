@@ -73,6 +73,13 @@ substituting `<REPORT CONFIG FILENAME>` for the report config you wish to use fr
 This may take some time and you'll be informed of progress. Once complete, the reports will be saved in the `data`
 directory.
 
+For some reports, some post-processing needs to be done before sharing with the Accessibility team. Where a report
+requires this, then you will find it under `src/report_generators/<report_name>_postprocess/py`.
+
+For example, if you want to create the `src/report_generators/attachment_type_report_generator.py` report, then run this
+report as normal and then run `src/report_generators/attachment_type_report_postprocess.py` to produce the reports for the
+Accessibility team.
+
 ## Creating a new report
 
 To create a new report, you should first add a report generator into the `report_generators` directory and inherit from
@@ -228,4 +235,3 @@ You can expand the JSON columns by highlighting the column and typing
 `=eval(nameofcolumn)`, for example, `=eval(details)`, and then typing `(` to
 expand the new column that was created.  Type `)` on an expanded column to
 collapse it.
-

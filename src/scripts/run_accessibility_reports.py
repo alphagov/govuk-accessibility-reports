@@ -2,6 +2,7 @@ import argparse
 import importlib
 import os
 import time
+import runpy
 
 from src.pipeline.runner_config import RunnerConfig
 from src.pipeline.report_runner import ReportRunner
@@ -55,6 +56,12 @@ if __name__ == "__main__":
 
     runner = ReportRunner(config)
     runner.run(reports)
+
+    # Run post processing scripts
+    for report in reports:
+        if report.postprocess:
+            print(f"Applying postprocessing of {report.postprocess}")
+            runpy.run_path(f"src/report_generators/{report.postprocess}")
 
     end_time = time.time() - start_time
     print("Done")

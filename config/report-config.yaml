@@ -17,11 +17,17 @@ reports:
     skip: true
   - name: Find pages with non-HTML attachments
     filename: non_html_attachment_report_generator.py
+    postprocess: non_html_attachment_report_postprocess.py
     class: NonHtmlAttachmentReportGenerator
     skip: true
   - name: Find pages with headers that are being represented as bold text
     filename: fake_header_report_generator.py
     class: FakeHeaderReportGenerator
+    skip: true
+  - name: Count number of attachments for each page
+    filename: attachment_type_report_generator.py
+    postprocess: attachment_type_report_postprocess.py
+    class: AttachmentTypeReportGenerator
     skip: true
 
 settings:
