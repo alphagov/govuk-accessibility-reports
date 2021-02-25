@@ -1,0 +1,17 @@
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+      - run: python -m pip install --upgrade pip
+      - run: pip install poetry
+      - run: poetry install
+      - run: poetry run flake8 src
+      - run: poetry run pytest
+      env:
+        POETRY_VIRTUALENVS_CREATE: false
