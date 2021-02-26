@@ -4,8 +4,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      env:
-        POETRY_VIRTUALENVS_CREATE: false
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
