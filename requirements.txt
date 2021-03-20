@@ -79,7 +79,7 @@ ipython-genutils==0.2.0
 ipywidgets==7.4.2
 jdcal==1.4.1
 jedi==0.17.0
-Jinja2==2.11.2
+Jinja2==2.11.3
 jmespath==0.9.4
 joblib==0.15.1
 json5==0.9.5
