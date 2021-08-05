@@ -16,3 +16,6 @@ class BaseReportGenerator(ABC):
     @abstractmethod
     def process_page(self, content_item, html):
         pass
+
+    def post_process_report(self):
+        pass
