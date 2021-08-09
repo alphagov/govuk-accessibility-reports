@@ -59,9 +59,7 @@ if __name__ == "__main__":
 
     # Run post processing scripts
     for report in reports:
-        if report.postprocess:
-            print(f"Applying postprocessing of {report.postprocess}")
-            runpy.run_path(f"src/report_generators/{report.postprocess}")
+        report.post_process_report()
 
     end_time = time.time() - start_time
     print("Done")
