@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 class HtmlExtractor:
     header_regex = re.compile("^h[1-6]{1}$")
     excluded_headings = [
-        "Tell us whether you accept cookies"
+        "Cookies on GOV.UK"
     ]
 
     @classmethod
