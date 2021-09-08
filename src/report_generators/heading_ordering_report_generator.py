@@ -6,7 +6,7 @@ from src.helpers.preprocess_text import extract_primary_org_from_organisations
 class HeadingOrderingReportGenerator(BaseReportGenerator):
     @property
     def headers(self):
-        return ["base_path", "primary_publishing_organisation", "has_valid_headings", "has_duplicate_h1s", "has_bad_ordering", "has_no_headings",
+        return ["base_path", "primary_publishing_organisation", "has_valid_headings", "has_duplicate_h1s", "has_wrong_start", "has_bad_ordering", "has_no_headings",
                 "heading_order"]
 
     @property
@@ -20,7 +20,7 @@ class HeadingOrderingReportGenerator(BaseReportGenerator):
         primary_publishing_organisation = extract_primary_org_from_organisations(content_item['organisations'])
 
         row = [content_item['base_path'], primary_publishing_organisation, heading_accessibility_info.is_valid(),
-               heading_accessibility_info.has_duplicate_h1s(), heading_accessibility_info.has_bad_ordering(),
+               heading_accessibility_info.has_duplicate_h1s(), heading_accessibility_info.has_wrong_start(), heading_accessibility_info.has_bad_ordering(),
                heading_accessibility_info.has_no_headings(), heading_accessibility_info.heading_order()]
 
         return row
