@@ -30,7 +30,7 @@ colorful==0.5.4
 coverage==5.0.3
 cycler==0.10.0
 cymem==2.0.3
-dask==2.30.0
+dask==2021.10.0
 datefinder==0.7.0
 decorator==4.4.2
 defusedxml==0.6.0
