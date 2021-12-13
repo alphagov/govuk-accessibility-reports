@@ -97,7 +97,7 @@ kiwisolver==1.2.0
 lab==6.0
 langdetect==1.0.8
 locket==0.2.0
-lxml==4.6.3
+lxml==4.6.5
 MarkupSafe==1.1.1
 matplotlib==3.2.1
 mccabe==0.6.1
