@@ -56,8 +56,7 @@ use the `--assume-role-ttl` flag as the mirror is a large download and can take 
 
 ## Getting started
 
-To get started, you should be running Python 3.7. Navigate to the project root (where this README is located) and
-install required packages via `pip install -r requirements.txt`.
+To get started, you should be running Python 3.7 or higher. Navigate to the project root (where this README is located) and install required packages via `pip install -r requirements.txt -c constraints.txt`.
 
 Next, you should configure which reports you'd like to generate by going into the appropriate config file inside of the
  `config` directory and setting the `skip` property of the reports you require to `false`. No reports are set to run
