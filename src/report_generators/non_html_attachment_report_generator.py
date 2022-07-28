@@ -115,7 +115,7 @@ class NonHtmlAttachmentReportGenerator(BaseReportGenerator):
         df_long.to_csv(path_or_buf='data/inaccessible_nonhtml_reports/full.csv', index=False)
 
         # ii.
-        df_long.sample(n=10000, random_state=42).to_csv(path_or_buf='data/inaccessible_nonhtml_reports/sample.csv',
+        df_long.sample(frac=0.1, random_state=42).to_csv(path_or_buf='data/inaccessible_nonhtml_reports/sample.csv',
                                                         index=False)
 
         # iii.
