@@ -1,6 +1,7 @@
 from langdetect import detect_langs
 from langdetect.lang_detect_exception import LangDetectException
 from src.report_generators.base_report_generator import BaseReportGenerator
+from src.helpers.preprocess_text import extract_primary_org_from_organisations
 
 import pandas as pd
 
@@ -18,8 +19,7 @@ class NonEnglishDocsReportGenerator(BaseReportGenerator):
         if pd.isna(content_item['text']):
             return [content_item['base_path'], content_item['text'], [], content_item.get('detected_as_english',
                                                                                           default=False)]
-        # extract primary publishing organisation
-        primary_publishing_organisation = self.__primary_org(content_item['organisations'])
+        primary_publishing_organisation = extract_primary_org_from_organisations(content_item['organisations'])
 
         content_item['text'] = str(content_item['text'])
 
@@ -46,32 +46,3 @@ class NonEnglishDocsReportGenerator(BaseReportGenerator):
             return detect_langs(text)
         except LangDetectException:
             return []
-
-    @staticmethod
-    def __primary_org(content_item_orgs) -> str:
-        # Parses Content Item list of Organisations, extracts the Primary Publishing Organisation
-        #  and returns its title.
-        #  Falls back to first Organisation if there is no Primary Publishing Organisation.
-        #
-        # Structure of `orgs` would look like:
-        # {
-        #     'organisations': [
-        #         ('b548a09f-8b35-4104-89f4-f1a40bf3136d', 'Department for Work and Pensions', 'D10')
-        #     ],
-        #     'primary_publishing_organisation': [
-        #         ('b548a09f-8b35-4104-89f4-f1a40bf3136d', 'Department for Work and Pensions', 'D10')
-        #     ]
-        # }
-
-        primary = None
-        orgs = ast.literal_eval(content_item_orgs)
-
-        try:
-            if orgs is not None:
-                primary = (orgs.get('primary_publishing_organisation'))[0][1]
-            if primary is None:
-                primary = (orgs.get('organisations'))[0][1]
-        except TypeError:
-            primary = "NO ORG"
-
-        return primary
