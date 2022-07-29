@@ -114,7 +114,7 @@ MarkupSafe==2.1.1
 matplotlib==3.5.2
 matplotlib-inline==0.1.3
 mccabe==0.6.1
-mistune==0.8.4
+mistune==2.0.3
 more-itertools==8.1.0
 multidict==5.0.2
 nbclassic==0.4.3
