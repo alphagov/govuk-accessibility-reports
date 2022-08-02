@@ -1,8 +1,11 @@
 import re
 
+from src.utils.constants import ATTACHMENTS
 from src.utils.html_extractor import HtmlExtractor
 from src.utils.html_table_extractor import HtmlTableExtractor
+
 from src.utils.alt_tag_info import AltTagInfo
+from src.utils.attachment_link_accessibility_info import AttachmentLinkAccessibilityInfo
 from src.utils.heading_accessibility_info import HeadingAccessibilityInfo
 from src.utils.table_accessibility_info import TableAccessibilityInfo
 from src.utils.table_relationship_info import TableRelationshipInfo
@@ -84,6 +87,67 @@ class HtmlValidator:
 
         return TableRelationshipInfo(table_mentions, attachment_links, table_in_document=False)
 
+    @staticmethod
+    def validate_attachment_link_accessibility(html):
+        attachment_links = HtmlExtractor.extract_attachment_links(html)
+
+        if len(attachment_links) == 0:
+            return AttachmentLinkAccessibilityInfo([])
+
+        inaccurate_pdf_download_text = False
+        no_format_description = False
+        no_size_description = False
+
+        for link in attachment_links:
+            relevant_text = HtmlValidator.relevant_text(link)
+
+            if HtmlValidator.is_pdf(link) and HtmlValidator.describes_link_as_download(relevant_text):
+                inaccurate_pdf_download_text = True
+
+            if not HtmlValidator.has_format_description(relevant_text, format = HtmlValidator.link_extension(link)):
+                no_format_description = True
+
+            if not HtmlValidator.has_size_description(relevant_text):
+                no_size_description = True
+
+        return AttachmentLinkAccessibilityInfo(attachment_links, inaccurate_pdf_download_text = inaccurate_pdf_download_text, no_format_description = no_format_description, no_size_description = no_size_description)
+
+    @staticmethod
+    def is_attachment_link(link):
+        return ("." + HtmlExtractor.link_extension(link)) in ATTACHMENTS
+
+    @staticmethod
+    def is_pdf(link):
+        return HtmlExtractor.link_extension(link) == 'pdf'
+
+    # The text of the link, of the parent, and of the parent's previous sibling
+    # (This is likely to be a header)
+    @staticmethod
+    def relevant_text(link):
+        texts = [link.text]
+        parent = link.find_parent('p')
+        if parent is not None:
+            texts.append(parent.text)
+            parent_sib = parent.find_previous_sibling()
+            if parent_sib is not None:
+                texts.append(parent_sib.text)
+        return " ".join(texts)
+
+    @staticmethod
+    def describes_link_as_download(text):
+        return "Download".casefold() in text.casefold()
+
+    @staticmethod
+    def has_format_description(text, format = 'pdf'):
+        return format.casefold() in text.casefold()
+
+    @staticmethod
+    def has_size_description(text):
+        for unit in [' kb', ' mb', ' gb']:
+            if unit.casefold() in text.casefold():
+                return True
+        return False
+
     def validate_alt_tags(html):
         images = HtmlExtractor.extract_images(html)
 
@@ -106,7 +170,5 @@ class HtmlValidator:
                     alt_tags_double_quotes = True
                 if image_regex.search(image['alt']) != None:
                     alt_tags_filename = True
-
-
 
         return AltTagInfo(True, missing_alt_tags, alt_tags_empty, alt_tags_double_quotes, alt_tags_filename)
