@@ -10,19 +10,21 @@ class HtmlValidator:
     def validate_headings_accessibility(html):
         headings = HtmlExtractor.extract_headings(html)
         number_of_headings = len(headings)
+        wrong_start = False
 
         if number_of_headings == 0:
             return HeadingAccessibilityInfo(headings='', no_headings=True)
 
         if headings[0] != 'h1':
-            return HeadingAccessibilityInfo(headings=headings[0], bad_ordering=True)
+          wrong_start=True
 
-        if number_of_headings == 1:
+        if number_of_headings == 1 and not wrong_start:
             return HeadingAccessibilityInfo(headings='h1')
 
         heading_levels = [int(heading.replace('h', '')) for heading in headings]
         duplicate_h1s = False
         bad_ordering = False
+
 
         for i in range(1, number_of_headings):
             previous_level = heading_levels[i - 1]
@@ -35,7 +37,7 @@ class HtmlValidator:
                 bad_ordering = True
 
         return HeadingAccessibilityInfo(headings=", ".join(headings), duplicate_h1s=duplicate_h1s,
-                                        bad_ordering=bad_ordering)
+                                        bad_ordering=bad_ordering, wrong_start=wrong_start)
 
     def validate_table_accessibility(html):
         tables = HtmlTableExtractor.extract_tables(html)
