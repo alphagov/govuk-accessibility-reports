@@ -1,12 +1,12 @@
 import re
 from bs4 import BeautifulSoup
 
-
 class HtmlTableExtractor:
 
     no_th_css = "table > :not(thead):first-child > tr:first-child > :not(th)"
     no_row_header_css = "table tbody tr:nth-child(2) th:not([scope=row]), table tbody tr:first-child *:not(th):first-child"
     two_column_table_css = "td:first-child:nth-last-child(2), td:first-child:nth-last-child(2) ~ td"
+    table_mentions = "(the|see|in) table"
 
     @classmethod
     def extract_tables(cls, html):
@@ -36,5 +36,12 @@ class HtmlTableExtractor:
     def extract_two_column_tables(cls, tables):
         soup = BeautifulSoup(str(tables), "html5lib")
         matches = soup.select(cls.two_column_table_css)
+
+        return list(matches)
+
+    @classmethod
+    def extract_table_mentions(cls, html):
+        soup = BeautifulSoup(str(html), "html5lib")
+        matches = soup.body.findAll(text=re.compile(cls.table_mentions, re.IGNORECASE))
 
         return list(matches)

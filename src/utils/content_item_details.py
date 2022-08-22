@@ -15,6 +15,8 @@ def content_item_details(content_item):
     return eval(content_item['details'])
 
 def format_from_content_details_body(body, content_type) -> str:
+    if type(body) == str:
+        return body
     content = [f['content'] for f in body if f['content_type'] == content_type]
     if len(content) == 0:
         return None
