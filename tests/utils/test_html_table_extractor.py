@@ -1,7 +1,7 @@
 import pytest
 
 from src.utils.html_table_extractor import HtmlTableExtractor
-from tests.fixtures.tables import good_table, bad_table, bad_table_missing_row_scope, html
+from tests.fixtures.tables import good_table, bad_table, bad_table_missing_row_scope, html, good_table_mention, bad_table_mention, missing_table_mention
 
 
 def test_extract_tables(html):
@@ -46,3 +46,14 @@ def test_extract_two_column_tables(html, bad_table):
 def test_extract_nothing_two_column_tables(good_table):
     tables = HtmlTableExtractor.extract_two_column_tables(good_table)
     assert len(tables) == 0
+
+def test_extract_no_table_mention(missing_table_mention):
+    table_mentions = HtmlTableExtractor.extract_table_mentions(missing_table_mention)
+    assert len(table_mentions) == 0
+
+def test_extract_a_table_mention(good_table_mention, bad_table_mention):
+    table_mentions = HtmlTableExtractor.extract_table_mentions(good_table_mention)
+    assert len(table_mentions) == 1
+
+    table_mentions = HtmlTableExtractor.extract_table_mentions(bad_table_mention)
+    assert len(table_mentions) == 1

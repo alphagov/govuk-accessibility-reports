@@ -27,6 +27,10 @@ reports:
     filename: attachment_type_report_generator.py
     class: AttachmentTypeReportGenerator
     skip: true
+  - name: Find text which refers to table that isn't in the text
+    filename: table_relationship_report_generator.py
+    class: TableRelationshipReportGenerator
+    skip: true
 
 settings:
   turbo_mode: false

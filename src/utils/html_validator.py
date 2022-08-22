@@ -2,7 +2,7 @@ from src.utils.html_extractor import HtmlExtractor
 from src.utils.html_table_extractor import HtmlTableExtractor
 from src.utils.heading_accessibility_info import HeadingAccessibilityInfo
 from src.utils.table_accessibility_info import TableAccessibilityInfo
-
+from src.utils.table_relationship_info import TableRelationshipInfo
 
 class HtmlValidator:
 
@@ -65,3 +65,18 @@ class HtmlValidator:
             two_columns = True
 
         return TableAccessibilityInfo(has_tables=has_tables, num_of_tables=num_of_tables, no_headers=no_headers, no_row_headers=no_row_headers, two_columns=two_columns)
+
+    def validate_table_relationships(html):
+        table_mentions = HtmlTableExtractor.extract_table_mentions(html)
+
+        if len(table_mentions) == 0:
+            return TableRelationshipInfo([], [])
+
+        tables = HtmlTableExtractor.extract_tables(html)
+
+        if tables is not None :
+            return TableRelationshipInfo(table_mentions, [], table_in_document=True)
+
+        attachment_links = HtmlExtractor.extract_attachment_links(html)
+
+        return TableRelationshipInfo(table_mentions, attachment_links, table_in_document=False)
