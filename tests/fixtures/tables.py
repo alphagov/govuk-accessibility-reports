@@ -75,6 +75,21 @@ two_tables_string ="""
     <table><tr><td>2</td></tr></table>
 """
 
+good_table_mention_string="""
+    <table><thead><tr><th>Expected</th></tr></thead><tbody><tr><td>1</td></tr></tbody></table>
+    <p>The table shows the data expected</p>
+"""
+
+bad_table_mention_string="""
+    <p>The table shows the data expected</p>
+    <a href="whatever">Hello</a>
+"""
+
+missing_table_mention_string="""
+    <p>by putting food on your table!</p>
+"""
+
+
 @pytest.fixture
 def good_table():
     return good_table_string
@@ -91,6 +106,18 @@ def bad_table_missing_row_scope():
 @pytest.fixture
 def two_tables():
     return two_tables_string
+
+@pytest.fixture
+def good_table_mention():
+    return good_table_mention_string
+
+@pytest.fixture
+def bad_table_mention():
+    return bad_table_mention_string
+
+@pytest.fixture
+def missing_table_mention():
+    return missing_table_mention_string
 
 @pytest.fixture
 def html():
