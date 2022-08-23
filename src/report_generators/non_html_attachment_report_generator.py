@@ -1,7 +1,6 @@
 from src.report_generators.base_report_generator import BaseReportGenerator
 from src.helpers.preprocess_text import extract_links_from_html
 from src.helpers.preprocess_text import extract_from_path
-from src.helpers.preprocess_text import extract_subtext
 
 import os
 import ast
@@ -15,23 +14,13 @@ import numpy as np
 class NonHtmlAttachmentReportGenerator(BaseReportGenerator):
     @property
     def headers(self):
-        return ["base_path",
-                "primary_publishing_organisation",
-                "publishing_app",
-                "document_type",
-                "first_published_at",
-                "attachment_path"]
+        return self.base_headers() + ["attachment_path"]
 
     @property
     def filename(self):
         return "non_html_page_report.csv"
 
     def process_page(self, content_item, html):
-
-        content_item['primary_publishing_organisation'] = extract_subtext(text=content_item['organisations'],
-                                                                          key='primary_publishing_organisation',
-                                                                          index=1)
-
         # ignore cases we do not want to return
         publishers = ["publisher", "service-manual-publisher", "specialist-publisher", "travel-advice-publisher"]
         if not content_item['publishing_app'] in publishers:
@@ -71,12 +60,7 @@ class NonHtmlAttachmentReportGenerator(BaseReportGenerator):
         if not content_item['attachment_ext']:
             return []
         else:
-            return [content_item['base_path'],
-                    content_item['primary_publishing_organisation'],
-                    content_item['publishing_app'],
-                    content_item['document_type'],
-                    content_item['first_published_at'],
-                    content_item['attachment_path']]
+            return self.base_columns(content_item, html) + [content_item['attachment_path']]
 
     def post_process_report(self):
         # import data

@@ -2,27 +2,27 @@ reports:
   - name: Heading accessibility
     filename: heading_ordering_report_generator.py
     class: HeadingOrderingReportGenerator
-    skip: true
+    skip: false
   - name: Non-English docs
     filename: non_english_docs_report_generator.py
     class: NonEnglishDocsReportGenerator
-    skip: true
+    skip: false
   - name: Tables
     filename: tables_report_generator.py
     class: TablesReportGenerator
-    skip: true
+    skip: false
   - name: Links that have same text but different URLs
     filename: link_text_report_generator.py
     class: LinkTextReportGenerator
-    skip: true
+    skip: false
   - name: Find pages with non-HTML attachments
     filename: non_html_attachment_report_generator.py
     class: NonHtmlAttachmentReportGenerator
-    skip: true
+    skip: false
   - name: Find pages with headers that are being represented as bold text
     filename: fake_header_report_generator.py
     class: FakeHeaderReportGenerator
-    skip: true
+    skip: false
   - name: Count number of attachments for each page
     filename: attachment_type_report_generator.py
     class: AttachmentTypeReportGenerator
@@ -30,12 +30,12 @@ reports:
   - name: Find text which refers to table that isn't in the text
     filename: table_relationship_report_generator.py
     class: TableRelationshipReportGenerator
-    skip: true
+    skip: false
 
 settings:
-  turbo_mode: true
-  html_content_dir_path: /absolute/path/to/html/content/dir
-  preprocessed_content_store_path: /absolute/path/to/preprocessed_content_store.csv.gz
+  turbo_mode: false
+  html_content_dir_path: downloads/govuk-production-mirror-replica
+  preprocessed_content_store_path: downloads/preprocessed_content_store_210722.csv.gz
   total_content_items: 1000
   content_item_batch_size: 100
   csv_writer_buffer_size: 500

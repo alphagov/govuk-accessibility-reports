@@ -1,5 +1,5 @@
 from src.report_generators.base_report_generator import BaseReportGenerator
-from src.helpers.preprocess_text import extract_subtext, extract_from_path
+from src.helpers.preprocess_text import extract_from_path
 from src.utils.constants import ATTACHMENTS
 
 # TODO: from the postprocessing file - clean up later
@@ -15,12 +15,7 @@ from collections import Counter
 class AttachmentTypeReportGenerator(BaseReportGenerator):
     @property
     def headers(self):
-        return ["base_path",
-                "primary_publishing_organisation",
-                "publishing_app",
-                "document_type",
-                "first_published_at",
-                "attachment_and_count"]
+        return self.base_headers() + ["attachment_and_count"]
 
     @property
     def filename(self):
@@ -31,10 +26,6 @@ class AttachmentTypeReportGenerator(BaseReportGenerator):
         if not content_item['details']:
             return []
 
-        # extract primary publishing organisations
-        content_item['primary_publishing_organisation'] = extract_subtext(text=content_item['organisations'],
-                                                                          key='primary_publishing_organisation',
-                                                                          index=1)
         # extract attachment url
         content_item['attachment_and_count'] = self.count_attachment_from_html(text=content_item['details'])
 
@@ -42,12 +33,7 @@ class AttachmentTypeReportGenerator(BaseReportGenerator):
         if not content_item['attachment_and_count']:
             return []
         else:
-            return [content_item['base_path'],
-                    content_item['primary_publishing_organisation'],
-                    content_item['publishing_app'],
-                    content_item['document_type'],
-                    content_item['first_published_at'],
-                    content_item['attachment_and_count']]
+            return self.base_columns(content_item, html) + [content_item['attachment_and_count']]
 
     def post_process_report(self):
         df_all = pd.read_csv(filepath_or_buffer='data/attachment_type_report.csv')
