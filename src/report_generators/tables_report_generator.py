@@ -13,7 +13,7 @@ class TablesReportGenerator(BaseReportGenerator):
 
     @property
     def headers(self):
-        return ["base_path", "organisations", "num_of_tables", "tables_missing_headers", "tables_missing_row_headers", "two_column_tables"]
+        return self.base_headers() + ["num_of_tables", "tables_missing_headers", "tables_missing_row_headers", "two_column_tables"]
 
     def process_page(self, content_item, html):
         accessibility = HtmlValidator.validate_table_accessibility(html)
@@ -22,13 +22,9 @@ class TablesReportGenerator(BaseReportGenerator):
         if accessibility.has_tables is not True or (accessibility.num_of_tables == 1 and accessibility.two_columns is True):
             return []
 
-        primary = extract_primary_org_from_organisations(content_item['organisations'])
-
-        row = ["https://gov.uk" + content_item['base_path'],
-               primary,
-               accessibility.num_of_tables,
+        row = [accessibility.num_of_tables,
                accessibility.no_headers,
                accessibility.no_row_headers,
                accessibility.two_columns]
 
-        return row
+        return self.base_columns(content_item, html) + row

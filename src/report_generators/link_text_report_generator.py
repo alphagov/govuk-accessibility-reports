@@ -4,7 +4,6 @@ import json
 from bs4 import BeautifulSoup
 from src.report_generators.base_report_generator import BaseReportGenerator
 
-
 class LinkTextReportGenerator(BaseReportGenerator):
 
     @property
@@ -13,8 +12,7 @@ class LinkTextReportGenerator(BaseReportGenerator):
 
     @property
     def headers(self):
-        return ["base_path", "title", "document_type", "publishing_app", "publishing_org", "links_compliant",
-                "non_compliant_links"]
+        return self.base_headers() + ["title", "links_compliant", "non_compliant_links"]
 
     def process_page(self, content_item, html):
         non_compliant_links = self.non_compliant_links(html)
@@ -23,12 +21,11 @@ class LinkTextReportGenerator(BaseReportGenerator):
         if links_are_compliant:
             return []
 
-        row = [f"https://www.gov.uk{content_item['base_path']}", content_item.get('title', ''),
-               content_item.get('document_type', ''), content_item.get('publishing_app', ''),
-               ";".join(self._primary_publishing_organisation(content_item)),
-               str(links_are_compliant), "\n".join(non_compliant_links)]
-
-        return row
+        return base_columns(content_item, html) + [
+                    content_item.get('title', ''),
+                    str(links_are_compliant),
+                    "\n".join(non_compliant_links)
+                ]
 
     def links_are_compliant(self, html):
         return not any(self.non_compliant_links(html))

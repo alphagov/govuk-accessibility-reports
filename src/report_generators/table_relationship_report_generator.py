@@ -1,5 +1,4 @@
 from src.report_generators.base_report_generator import BaseReportGenerator
-from src.helpers.preprocess_text import extract_subtext
 from src.utils.constants import ATTACHMENTS
 from src.utils.html_validator import HtmlValidator
 
@@ -8,12 +7,12 @@ from src.utils.content_item_details import content_item_details, html_from_conte
 class TableRelationshipReportGenerator(BaseReportGenerator):
     @property
     def headers(self):
-        return ["base_path",
-                "primary_publishing_organisation",
-                "is_valid",
-                "mentions_table",
-                "table_in_document",
-                "possible_table_attachment"]
+        return self.base_headers() + [
+                    "is_valid",
+                    "mentions_table",
+                    "table_in_document",
+                    "possible_table_attachment"
+                ]
 
     @property
     def filename(self):
@@ -24,10 +23,6 @@ class TableRelationshipReportGenerator(BaseReportGenerator):
         if not content_item['details']:
             return []
 
-        # extract primary publishing organisations
-        content_item['primary_publishing_organisation'] = extract_subtext(text=content_item['organisations'],
-                                                                          key='primary_publishing_organisation',
-                                                                          index=1)
         details_dict = content_item_details(content_item)
 
         # extract attachment url
@@ -45,9 +40,9 @@ class TableRelationshipReportGenerator(BaseReportGenerator):
         elif table_relationship_info.is_valid():
             return []
         else:
-            return [content_item['base_path'],
-                    content_item['primary_publishing_organisation'][0],
-                    str(table_relationship_info.is_valid()),
-                    str(table_relationship_info.has_mention_of_table()),
-                    str(table_relationship_info.has_table_in_document()),
-                    str(table_relationship_info.has_possible_table_attachment())]
+            return  self.base_columns(content_item, html) + [
+                        str(table_relationship_info.is_valid()),
+                        str(table_relationship_info.has_mention_of_table()),
+                        str(table_relationship_info.has_table_in_document()),
+                        str(table_relationship_info.has_possible_table_attachment())
+                    ]
