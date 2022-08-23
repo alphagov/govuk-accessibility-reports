@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from bs4 import BeautifulSoup
 from src.helpers.preprocess_text import extract_subtext
 
+import re
+
 class BaseReportGenerator(ABC):
 
     @property
@@ -41,11 +43,14 @@ class BaseReportGenerator(ABC):
         if schema_element != None:
             content_item["schema_name"] = schema_element["content"]
 
+        regex = re.compile("^This was published under the", re.IGNORECASE)
+        historical_box = soup.body.find("span", attrs={"class":"gem-c-notice__title govuk-notification-banner__heading"}, text=regex)
 
         content_item["status"] = "published"
         if content_item["withdrawn"] == "TRUE":
             content_item["status"] = "withdrawn"
-
+        elif historical_box != None:
+            content_item["status"] = "historical"
 
         return [content_item["base_path"],
                 ", ".join(content_item["primary_publishing_organisation"]),
