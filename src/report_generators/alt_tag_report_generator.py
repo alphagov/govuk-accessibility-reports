@@ -36,16 +36,16 @@ class AltTagReportGenerator(BaseReportGenerator):
         alt_tags_info = HtmlValidator.validate_alt_tags(html_parts)
 
         # return only pages with relevant attachment links and problems
-        if alt_tags_info.has_images == False:
+        if alt_tags_info.includes_images == False:
             return []
         elif alt_tags_info.is_valid():
             return []
         else:
             return  self.base_columns(content_item, html) + [
                         str(alt_tags_info.is_valid()),
-                        str(alt_tags_info.has_images()),
-                        str(alt_tags_info.missing_alt_tags()),
-                        str(alt_tags_info.alt_tags_empty()),
-                        str(alt_tags_info.alt_tags_double_quotes()),
-                        str(alt_tags_info.alt_tags_filename())
+                        str(alt_tags_info.includes_images()),
+                        str(alt_tags_info.missing_tags()),
+                        str(alt_tags_info.tags_empty()),
+                        str(alt_tags_info.tags_double_quotes()),
+                        str(alt_tags_info.tags_filename())
                     ]
