@@ -31,6 +31,10 @@ reports:
     filename: table_relationship_report_generator.py
     class: TableRelationshipReportGenerator
     skip: true
+  - name: Check descriptions around attachments are accurate
+    filename: attachment_description_report_generator.py
+    class: AttachmentDescriptionReportGenerator
+    skip: true
   - name: Find images with missing or broken alt tags
     filename: alt_tag_report_generator.py
     class: AltTagReportGenerator
