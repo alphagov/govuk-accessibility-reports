@@ -13,16 +13,16 @@ class TablesReportGenerator(BaseReportGenerator):
 
     @property
     def headers(self):
-        return self.base_headers() + ["num_of_tables", "tables_missing_headers", "tables_missing_row_headers", "two_column_tables"]
+        return self.base_headers() + ["is_valid", "num_of_tables", "tables_missing_headers", "tables_missing_row_headers", "two_column_tables"]
 
     def process_page(self, content_item, html):
         accessibility = HtmlValidator.validate_table_accessibility(html)
 
-        # a11y Team don't want to look at pages that only have one table that have just 2 columns
-        if accessibility.has_tables is not True or (accessibility.num_of_tables == 1 and accessibility.two_columns is True):
+        if accessibility.has_tables is not True or accessibility.is_valid():
             return []
 
-        row = [accessibility.num_of_tables,
+        row = [accessibility.is_valid(),
+               accessibility.num_of_tables,
                accessibility.no_headers,
                accessibility.no_row_headers,
                accessibility.two_columns]

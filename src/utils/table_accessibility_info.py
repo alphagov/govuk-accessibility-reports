@@ -31,3 +31,17 @@ class TableAccessibilityInfo:
 
     def numbers_in_first_column(self):
         return self.numbers_in_first_column
+
+    def is_valid(self):
+        if self.num_of_tables == 0:
+            return True
+        if self.num_of_tables == 1 and self.two_columns is True:
+            if self.no_headers:
+                return False
+            else:
+                return True
+
+        if self.no_headers or self.no_row_headers:
+            return False
+
+        return True
