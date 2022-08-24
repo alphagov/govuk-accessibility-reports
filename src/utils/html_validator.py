@@ -1,5 +1,8 @@
+import re
+
 from src.utils.html_extractor import HtmlExtractor
 from src.utils.html_table_extractor import HtmlTableExtractor
+from src.utils.alt_tag_info import AltTagInfo
 from src.utils.heading_accessibility_info import HeadingAccessibilityInfo
 from src.utils.table_accessibility_info import TableAccessibilityInfo
 from src.utils.table_relationship_info import TableRelationshipInfo
@@ -80,3 +83,30 @@ class HtmlValidator:
         attachment_links = HtmlExtractor.extract_attachment_links(html)
 
         return TableRelationshipInfo(table_mentions, attachment_links, table_in_document=False)
+
+    def validate_alt_tags(html):
+        images = HtmlExtractor.extract_images(html)
+
+        if images == None or len(images) == 0:
+            return AltTagInfo()
+
+        missing_alt_tags = False
+        alt_tags_empty = False
+        alt_tags_double_quotes = False
+        alt_tags_filename = False
+        image_regex = re.compile("png|jpg|webp|_", re.IGNORECASE)
+
+        for image in images:
+            if not 'alt' in image.attrs.keys():
+                missing_alt_tags = True
+            else:
+                if image['alt'] == "":
+                    alt_tags_empty = True
+                if image['alt'] == '""':
+                    alt_tags_double_quotes = True
+                if image_regex.search(image['alt']) != None:
+                    alt_tags_filename = True
+
+
+
+        return AltTagInfo(True, missing_alt_tags, alt_tags_empty, alt_tags_double_quotes, alt_tags_filename)

@@ -31,3 +31,78 @@ def wrong_start():
 """
 
     return html
+
+@pytest.fixture
+def good_alt_tags():
+    html = f"""
+<html>
+<head>
+    <title>Good Alt Tags</title>
+</head>
+<body>
+<img src="myimage.png" alt="Exterior view of Ministry of Silly Walks" />
+</body>
+</html>
+"""
+
+    return html
+
+@pytest.fixture
+def missing_alt_tags():
+    html = f"""
+<html>
+<head>
+    <title>Missing Alt Tags</title>
+</head>
+<body>
+<img src="myimage.png" />
+</body>
+</html>
+"""
+
+    return html
+
+@pytest.fixture
+def empty_alt_tags():
+    html = f"""
+<html>
+<head>
+    <title>Empty Alt Tags</title>
+</head>
+<body>
+<img src="myimage.png" alt=""/>
+</body>
+</html>
+"""
+
+    return html
+
+@pytest.fixture
+def double_quote_alt_tags():
+    html = f"""
+<html>
+<head>
+    <title>Double Quote Alt Tags</title>
+</head>
+<body>
+<img src="myimage.png" alt="&quot;&quot;"/>
+</body>
+</html>
+"""
+
+    return html
+
+@pytest.fixture
+def filename_alt_tags():
+    html = f"""
+<html>
+<head>
+    <title>Filename Alt Tags</title>
+</head>
+<body>
+<img src="myimage.png" alt="myimage.png"/>
+</body>
+</html>
+"""
+
+    return html
