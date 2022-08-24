@@ -9,22 +9,22 @@ class AltTagInfo:
         self.alt_tags_double_quotes = alt_tags_double_quotes
         self.alt_tags_filename = alt_tags_filename
 
-    def has_images(self):
+    def includes_images(self):
         return self.has_images
 
-    def missing_alt_tags(self):
+    def missing_tags(self):
         return self.missing_alt_tags
 
-    def alt_tags_empty(self):
+    def tags_empty(self):
         return self.alt_tags_empty
 
-    def alt_tags_double_quotes(self):
+    def tags_double_quotes(self):
         return self.alt_tags_double_quotes
 
-    def alt_tags_filename(self):
+    def tags_filename(self):
         return self.alt_tags_filename
 
     def is_valid(self):
-        if self.has_images() and (self.missing_alt_tags() or self.alt_tags_empty() or self.alt_tags_double_quotes() or self.alt_tags_filename()):
+        if self.includes_images() and (self.missing_tags() or self.tags_empty() or self.tags_double_quotes() or self.tags_filename()):
             return False
         return True
