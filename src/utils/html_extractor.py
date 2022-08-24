@@ -40,3 +40,9 @@ class HtmlExtractor:
     @staticmethod
     def is_attachment_link(link):
         return ("." + HtmlExtractor.link_extension(link)) in ATTACHMENTS
+
+    @classmethod
+    def extract_images(cls, html):
+        soup = BeautifulSoup(html, 'html5lib')
+        links = soup.find_all(name="img")
+        return links
