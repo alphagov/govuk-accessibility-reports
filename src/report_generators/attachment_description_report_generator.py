@@ -11,7 +11,6 @@ class AttachmentDescriptionReportGenerator(BaseReportGenerator):
         return ["base_path",
                 "primary_publishing_organisation",
                 "is_valid",
-                "inaccurately_describes_pdf_as_download",
                 "no_mention_of_format",
                 "no_mention_of_size"]
 
@@ -42,6 +41,5 @@ class AttachmentDescriptionReportGenerator(BaseReportGenerator):
             return [content_item['base_path'],
                     content_item['primary_publishing_organisation'][0],
                     str(attachment_link_accessibility_info.is_valid()),
-                    str(attachment_link_accessibility_info.has_inaccurate_pdf_download_text()),
                     str(attachment_link_accessibility_info.has_no_format_description()),
                     str(attachment_link_accessibility_info.has_no_size_description())]
