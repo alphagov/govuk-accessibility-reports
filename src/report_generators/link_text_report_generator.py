@@ -114,7 +114,17 @@ class LinkTextReportGenerator(BaseReportGenerator):
         soup = BeautifulSoup(html, "html5lib")
         links_by_text = {}
 
-        invalid_texts_regex = re.compile('^click( here)*$|^view( online)*$|^read( online)*$', re.IGNORECASE)
+        bad_link_texts = [
+            "click here", "read more", "view online", "tell us here",
+            "see guidance", "read guidance", "view guidance", "more guidance", "further guidance",
+            "see information", "read information", "view information", "more information", "further information",
+            "click", "here", "read", "more", "view", "see", "guidance",
+            "information", "online"
+        ]
+
+        invalid_texts_regex_str = "|".join(map(lambda str: "^{}$".format(str), bad_link_texts))
+
+        invalid_texts_regex = re.compile(invalid_texts_regex_str, re.IGNORECASE)
 
         non_descriptive_links = []
 
