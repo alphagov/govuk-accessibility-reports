@@ -1,5 +1,6 @@
 import ast
 import json
+import re
 
 from bs4 import BeautifulSoup
 from src.report_generators.base_report_generator import BaseReportGenerator
@@ -12,19 +13,24 @@ class LinkTextReportGenerator(BaseReportGenerator):
 
     @property
     def headers(self):
-        return self.base_headers() + ["title", "links_compliant", "non_compliant_links"]
+        return self.base_headers() + ["title", "links_compliant", "non_compliant_links", "links_descriptive", "non_descriptive_links"]
 
     def process_page(self, content_item, html):
         non_compliant_links = self.non_compliant_links(html)
-        links_are_compliant = not any(non_compliant_links)
+        non_descriptive_links = self.non_descriptive_links(html)
 
-        if links_are_compliant:
+        links_are_compliant = not any(non_compliant_links)
+        links_are_descriptive = not any(non_descriptive_links)
+
+        if links_are_compliant and links_are_descriptive:
             return []
 
-        return base_columns(content_item, html) + [
+        return self.base_columns(content_item, html) + [
                     content_item.get('title', ''),
                     str(links_are_compliant),
-                    "\n".join(non_compliant_links)
+                    "\n".join(non_compliant_links),
+                    str(links_are_descriptive),
+                    "\n".join(non_descriptive_links),
                 ]
 
     def links_are_compliant(self, html):
@@ -97,6 +103,39 @@ class LinkTextReportGenerator(BaseReportGenerator):
                 non_compliant_links.append(problem_statement)
 
         return non_compliant_links
+
+    def non_descriptive_links(self, html):
+        """
+        Returns non descriptive link texts
+        Will return the text of links if the text is considered non-descriptive,
+        for instance "view online", "view", "read", "click here", etc.
+        """
+
+        soup = BeautifulSoup(html, "html5lib")
+        links_by_text = {}
+
+        bad_link_texts = [
+            "click here", "read more", "view online", "tell us here",
+            "see guidance", "read guidance", "view guidance", "more guidance", "further guidance",
+            "see information", "read information", "view information", "more information", "further information",
+            "click", "here", "read", "more", "view", "see", "guidance",
+            "information", "online"
+        ]
+
+        invalid_texts_regex_str = "|".join(map(lambda str: "^{}$".format(str), bad_link_texts))
+
+        invalid_texts_regex = re.compile(invalid_texts_regex_str, re.IGNORECASE)
+
+        non_descriptive_links = []
+
+        for link in soup.findAll('a'):
+            if self._is_not_feedback(link) and self._is_not_global_bar(link) and self._is_not_cookie_banner(
+                    link) and self._is_not_footer(link) and self._is_not_skip_link(link):
+                text = " ".join(list(link.stripped_strings))
+                if len(re.findall(invalid_texts_regex, text)) > 0:
+                    non_descriptive_links.append(text)
+
+        return non_descriptive_links
 
     @staticmethod
     def _is_not_feedback(link):
