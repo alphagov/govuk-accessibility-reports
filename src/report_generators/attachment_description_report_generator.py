@@ -23,6 +23,9 @@ class AttachmentDescriptionReportGenerator(BaseReportGenerator):
 
         details_dict = content_item_details(content_item)
 
+        if "body" not in details_dict:
+            return []
+
         # extract attachment url
         attachment_link_accessibility_info = HtmlValidator.validate_attachment_link_accessibility(html_from_content_details(details_dict))
 
