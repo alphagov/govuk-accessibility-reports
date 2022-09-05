@@ -104,7 +104,7 @@ class HtmlValidator:
             if HtmlValidator.is_pdf(link) and HtmlValidator.describes_link_as_download(relevant_text):
                 inaccurate_pdf_download_text = True
 
-            if not HtmlValidator.has_format_description(relevant_text, format = HtmlValidator.link_extension(link)):
+            if not HtmlValidator.has_format_description(relevant_text, format = HtmlExtractor.link_extension(link)):
                 no_format_description = True
 
             if not HtmlValidator.has_size_description(relevant_text):
