@@ -1,5 +1,4 @@
 from src.report_generators.base_report_generator import BaseReportGenerator
-from src.helpers.preprocess_text import extract_subtext
 from src.utils.constants import ATTACHMENTS
 from src.utils.html_validator import HtmlValidator
 
@@ -8,8 +7,7 @@ from src.utils.content_item_details import content_item_details, html_from_conte
 class AttachmentDescriptionReportGenerator(BaseReportGenerator):
     @property
     def headers(self):
-        return ["base_path",
-                "primary_publishing_organisation",
+        return self.base_headers() + [
                 "is_valid",
                 "no_mention_of_format",
                 "no_mention_of_size"]
@@ -23,10 +21,6 @@ class AttachmentDescriptionReportGenerator(BaseReportGenerator):
         if not content_item['details']:
             return []
 
-        # extract primary publishing organisations
-        content_item['primary_publishing_organisation'] = extract_subtext(text=content_item['organisations'],
-                                                                          key='primary_publishing_organisation',
-                                                                          index=1)
         details_dict = content_item_details(content_item)
 
         # extract attachment url
@@ -38,8 +32,7 @@ class AttachmentDescriptionReportGenerator(BaseReportGenerator):
         elif attachment_link_accessibility_info.is_valid():
             return []
         else:
-            return [content_item['base_path'],
-                    content_item['primary_publishing_organisation'][0],
+            return  self.base_columns(content_item, html) + [
                     str(attachment_link_accessibility_info.is_valid()),
                     str(attachment_link_accessibility_info.has_no_format_description()),
                     str(attachment_link_accessibility_info.has_no_size_description())]
