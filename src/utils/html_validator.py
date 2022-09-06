@@ -113,6 +113,15 @@ class HtmlValidator:
         return AttachmentLinkAccessibilityInfo(attachment_links, inaccurate_pdf_download_text = inaccurate_pdf_download_text, no_format_description = no_format_description, no_size_description = no_size_description)
 
     @staticmethod
+    def link_has_open_text(link):
+        text = " ".join(list(link.stripped_strings))
+
+        if len(re.findall("open", text)) > 0:
+            return text
+
+        return ""
+
+    @staticmethod
     def is_attachment_link(link):
         return ("." + HtmlExtractor.link_extension(link)) in ATTACHMENTS
 

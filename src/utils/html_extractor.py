@@ -32,6 +32,12 @@ class HtmlExtractor:
         attachment_links = [l for l in links if HtmlExtractor.is_attachment_link(l)]
         return attachment_links
 
+    @classmethod
+    def extract_links_with_target(cls, html):
+        soup = BeautifulSoup(html, 'html5lib')
+        links = soup.find_all(name="a", href=True, target=True)
+        return links
+
     @staticmethod
     def link_extension(link):
         parts = link.attrs['href'].split('.')

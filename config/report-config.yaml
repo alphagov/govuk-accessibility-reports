@@ -15,6 +15,10 @@ reports:
     filename: link_text_report_generator.py
     class: LinkTextReportGenerator
     skip: true
+  - name: Find links which don't warn they open in new window
+    filename: new_window_link_report_generator.py
+    class: NewWindowLinkReportGenerator
+    skip: true
   - name: Find pages with non-HTML attachments
     filename: non_html_attachment_report_generator.py
     class: NonHtmlAttachmentReportGenerator
