@@ -30,7 +30,7 @@ class HtmlExtractor:
         soup = BeautifulSoup(html, 'html5lib')
         links = soup.find_all(name="a", href=True)
         attachment_links = [l for l in links if HtmlExtractor.is_attachment_link(l)]
-        return links
+        return attachment_links
 
     @staticmethod
     def link_extension(link):
