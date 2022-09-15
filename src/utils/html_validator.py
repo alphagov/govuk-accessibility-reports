@@ -90,6 +90,7 @@ class HtmlValidator:
     @staticmethod
     def validate_attachment_link_accessibility(html):
         attachment_links = HtmlExtractor.extract_attachment_links(html)
+        attachment_links = [l for l in attachment_links if HtmlValidator.is_type_1_attachment_link(l)]
 
         if len(attachment_links) == 0:
             return AttachmentLinkAccessibilityInfo([])
@@ -132,6 +133,29 @@ class HtmlValidator:
             if parent_sib is not None:
                 texts.append(parent_sib.text)
         return " ".join(texts)
+
+    @staticmethod
+    def is_type_1_attachment_link(link):
+        # Type 2 has a parent span with 'attachment-inline' class
+        span_parent = link.find_parent('span')
+        if span_parent != None and 'class' in span_parent.attrs and 'attachment-inline' in span_parent.attrs['class']:
+            return False
+
+        # Type 3 has 'gem-c-attachment__link' class itself
+        if 'gem-c-attachment__link' and 'class' in link.attrs in link.attrs['class']:
+            return False
+
+        # Type 4 has an ancestory section with 'gem-c-attachment' class
+        section_ancestor = link.find_parent('section')
+        if section_ancestor != None and 'class' in section_ancestor.attrs and 'gem-c-attachment' in section_ancestor.attrs['class']:
+            return False
+
+        # Type 5 has an ancestor section with 'attachment embedded' classes
+        if section_ancestor != None and 'class' in section_ancestor.attrs and 'attachment' in section_ancestor.attrs['class']:
+            return False
+
+        return True
+
 
     @staticmethod
     def describes_link_as_download(text):
