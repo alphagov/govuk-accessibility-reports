@@ -24,7 +24,10 @@ def format_from_content_details_body(body, content_type) -> str:
         return content[0]
 
 def html_from_content_details(details) -> str:
-    return format_from_content_details_body(details['body'], 'text/html')
+    body = format_from_content_details_body(details['body'], 'text/html')
+    if 'documents' in details and len(details['documents']) > 0:
+        body += details['documents'][0]
+    return body
 
 def govspeak_from_content_details(details) -> str:
     return format_from_content_details_body(details['body'], 'text/govspeak')
