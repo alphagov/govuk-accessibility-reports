@@ -8,12 +8,14 @@ import sys
 # existing reports where you already know one URL with an issue they should
 # handle.
 
-gzipped_content_store_file_path = "downloads/preprocessed_content_store_210722.csv.gz"
-target_file_path = "downloads/abridged_content_store_210722.csv.gz"
+gzipped_content_store_file_path = "downloads/preprocessed_content_store_230822.csv.gz"
+target_file_path = "downloads/abridged_content_store_230822.csv.gz"
 item_urls = [
   "/aaib-reports/1-1971-g-atek-and-g-ateh-15-august-1967",
   "/government/statistics/percentile-points-from-1-to-99-for-total-income-before-and-after-tax",
-  "/government/organisations/hm-revenue-customs"
+  "/government/organisations/hm-revenue-customs",
+  "/anti-money-laundering-registration",
+  "/ad-dalu-gordaliadau-budd-dal-plant"
 ]
 
 csv.field_size_limit(sys.maxsize)

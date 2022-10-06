@@ -15,17 +15,17 @@ good_table_string = f"""
             <tr>
                 <th scope="row">Founder</th>
                 <td>Batman</td>
-                <td>VENGEANCE</td>
+                <td>VENG<br />EANCE</td>
                 <td>Gotham</td>
             </tr>
             <tr>
-                <th>First son</th>
+                <th scope="row">First son</th>
                 <td>Robin</td>
                 <td>Partner</td>
                 <td>Bludhaven</td>
             </tr>
             <tr>
-                <th>Replacement</th>
+                <th scope="row">Replacement</th>
                 <td>Robin 2</td>
                 <td>Dead one</td>
                 <td>Pit</td>
@@ -42,7 +42,7 @@ bad_table_string = f"""
             <td>Role</td>
         </tr>
         <tr>
-            <td>Superman</td>
+            <th scope="row">Superman</td>
             <td>Himbo</td>
         </tr>
         <tr>
@@ -55,18 +55,40 @@ bad_table_string = f"""
 bad_table_missing_row_scope_string = f"""
     <p>Bad table missing row scope</p>
     <table>
+        <tbody>
         <tr>
-            <th>Name</td>
+            <th scope="row">Name</td>
             <th>Role</td>
         </tr>
         <tr>
-            <th>Superman</td>
+            <th scope="row">Superman</td>
             <td>Himbo</td>
         </tr>
         <tr>
-          <td>Flash</td>
-          <td>Speedster</td>
+            <th>Flash</td>
+            <td>Speedster</td>
         </tr>
+        </tbody>
+    </table>
+"""
+
+bad_table_missing_row_th_string = f"""
+    <p>Bad table missing row th</p>
+    <table>
+        <tbody>
+        <tr>
+            <th scope="row">Name</td>
+            <th>Role</td>
+        </tr>
+        <tr>
+            <th scope="row">Superman</td>
+            <td>Himbo</td>
+        </tr>
+        <tr>
+            <td>Flash</td>
+            <td>Speedster</td>
+        </tr>
+        </tbody>
     </table>
 """
 
@@ -102,6 +124,10 @@ def bad_table():
 @pytest.fixture
 def bad_table_missing_row_scope():
     return bad_table_missing_row_scope_string
+
+@pytest.fixture
+def bad_table_missing_row_th():
+    return bad_table_missing_row_th_string
 
 @pytest.fixture
 def two_tables():

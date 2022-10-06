@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 class HtmlTableExtractor:
 
     no_th_css = "table > :not(thead):first-child > tr:first-child > :not(th)"
-    no_row_header_css = "table tbody tr:nth-child(2) th:not([scope=row]), table tbody tr:first-child *:not(th):first-child"
+    no_row_header_css = "table tbody tr > th:first-child:not([scope=row]), table tbody tr > *:not(th):first-child"
     two_column_table_css = "td:first-child:nth-last-child(2), td:first-child:nth-last-child(2) ~ td"
     table_mentions = "(the|see|in) table"
 
