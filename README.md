@@ -234,3 +234,8 @@ You can expand the JSON columns by highlighting the column and typing
 `=eval(nameofcolumn)`, for example, `=eval(details)`, and then typing `(` to
 expand the new column that was created.  Type `)` on an expanded column to
 collapse it.
+
+## Licence
+
+[MIT License](LICENCE)
+
